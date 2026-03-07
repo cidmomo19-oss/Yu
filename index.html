@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Text</title>
+    <title>Text Viewer</title>
     <style>
         /* Desain Bersih, Putih, Polos */
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
@@ -18,7 +18,7 @@
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
 
-        /* TAMPILAN LINK BIRU (TAPI ISINYA LOGIKA TOMBOL) */
+        /* Kursor diubah biar kerasa kayak ngeklik link beneran */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -29,7 +29,7 @@
 <body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        <!-- MODE BUAT PESAN (ADMIN) -->
+        <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
@@ -43,34 +43,16 @@
             </div>
         </div>
 
-        <!-- MODE BACA PESAN (USER) -->
+        <!-- MODE BACA PESAN -->
         <div id="view-mode" style="display: none;"></div>
     </div>
 
     <script>
-        // --- LOGIKA IKLAN STEALTH (SAMA PERSIS DENGAN TOMBOL) ---
-        const ADS = [
-            "https://maideneyeshadow.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", // Iklan Background
-            "https://omg10.com/4/10390860" // Iklan Tab Lama
+        // --- 2 LINK IKLAN ---
+        const ADS =[
+            "https://maideneyeshadow.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
+            "https://omg10.com/4/10390860"
         ];
-
-        // Penyimpanan Sementara Link Asli
-        let linkVault = {}; 
-
-        // Fungsi manipulasi tampilan URL (Biar link asli gak kelihatan langsung)
-        function createFakeUrl(originalUrl) {
-            try {
-                let urlObj = new URL(originalUrl);
-                let pathParts = urlObj.pathname.split('/');
-                let lastPart = pathParts.pop(); 
-                if (lastPart) {
-                    // Bikin buntut URL acak biar kelihatan unik
-                    const randomStr = Math.random().toString(36).substring(2, 10);
-                    return urlObj.origin + urlObj.pathname + '/' + randomStr; 
-                }
-            } catch(e) {}
-            return originalUrl;
-        }
 
         function showCreateMode() {
             document.getElementById('create-mode').style.display = 'block';
@@ -82,62 +64,41 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            linkVault = {};
-
-            // 1. Deteksi URL dalam teks
-            const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(realUrl) {
-                const fakeUrl = createFakeUrl(realUrl);
-                // Simpan URL asli di memori, user cuma lihat Fake URL
-                linkVault[fakeUrl] = realUrl; 
-                // Render sebagai Link Biru
-                return `<a href="${fakeUrl}" class="link-blue">${fakeUrl}</a>`;
+            // 1. Ubah teks link menjadi tulisan biru yang ada onClick-nya
+            // (Disamakan dengan versi tombol yang pakai onClick)
+            const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+                // Di-encode pakai base64 (btoa) biar tanda baca di URL gak merusak HTML
+                const safeUrl = btoa(url);
+                return '<span class="link-blue" onclick="executeRedirect(atob(\'' + safeUrl + '\'))">' + url + '</span>';
             });
             
             viewDiv.innerHTML = linkedText;
-
-            // 2. Pasang Jebakan Iklan di Setiap Link
-            const links = viewDiv.querySelectorAll('.link-blue');
-            links.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault(); // Matikan link biasa
-                    
-                    // Ambil link asli dari simpanan
-                    const visibleUrl = this.getAttribute('href');
-                    const targetUrl = linkVault[visibleUrl] || visibleUrl; 
-                    
-                    executeStealthRedirect(targetUrl);
-                });
-            });
         }
 
-        // --- INI JANTUNG LOGIKANYA (COPY-PASTE DARI VERSI TOMBOL) ---
-        function executeStealthRedirect(url) {
-            // A. Buka Iklan PERTAMA di Tab Baru (Background)
-            // (Untung-untungan, kalau lolos popup blocker ya syukur)
+        // --- FUNGSI INI 100% HASIL COPAS DARI VERSI TOMBOL (STEALTH MODE) ---
+        function executeRedirect(url) {
+            // A. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
             try { 
                 window.open(ADS[0], '_blank'); 
             } catch(e) {}
 
-            // B. Buka LINK ASLI (Konten) di Tab Baru (Fokus Utama)
+            // B. Buka LINK ASLI (Konten) di Tab Baru
             let contentWindow = window.open(url, '_blank');
 
-            // C. Tab Lama (Ini) Berubah jadi Iklan KEDUA
-            if (contentWindow) {
-                // Jika konten berhasil kebuka di tab baru, tab ini jadi iklan
-                window.location.href = ADS[1];
-            } else {
-                // Jika apes banget konten keblokir, buka di sini aja biar user gak kabur
+            // Safety Check: Jika browser memblokir Link Asli
+            if (!contentWindow) {
                 window.location.href = url;
+            } else {
+                // C. Tab Lama (ini) ganti jadi Iklan KEDUA
+                window.location.href = ADS[1];
             }
         }
 
-        // --- INIT & API (BAGIAN WORKER/BACKEND) ---
         async function init() {
             const id = window.location.pathname.split('/').filter(p => p).pop();
             
             if (id && id !== 'index.html') {
                 try {
-                    // Fetch data dari KV/Database
                     const res = await fetch('/api/get/' + id);
                     if (!res.ok) throw new Error();
                     const data = await res.json();
@@ -156,7 +117,7 @@
             if (!text) return;
             
             const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "Processing...";
+            btn.disabled = true; btn.innerText = "Loading...";
 
             try {
                 const res = await fetch('/api/create', {
@@ -170,7 +131,7 @@
                 document.getElementById('result-url').value = finalUrl;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) {
-                alert("Error: Pastikan Backend Worker sudah benar.");
+                alert("Gagal konek ke KV! Pastikan Worker dan Pages sudah terhubung.");
             }
             btn.disabled = false; btn.innerText = "Buat Link";
         }
@@ -182,8 +143,9 @@
             document.execCommand("copy");
             
             const btn = document.getElementById("btn-copy");
-            btn.innerText = "Sukses";
+            btn.innerText = "Tersalin!";
             btn.style.backgroundColor = "#28a745";
+            
             setTimeout(() => {
                 btn.innerText = "Salin";
                 btn.style.backgroundColor = "#000000";
@@ -191,7 +153,7 @@
         }
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U'))) {
+            if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
                 e.preventDefault();
             }
         });
