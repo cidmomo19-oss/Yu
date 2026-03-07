@@ -18,7 +18,6 @@
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
 
-        /* Kursor diubah biar kerasa kayak ngeklik link beneran */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -48,11 +47,14 @@
     </div>
 
     <script>
-        // --- 2 LINK IKLAN ---
+        // --- LINK IKLAN DISAMAKAN PERSIS DENGAN VERSI TOMBOL ---
         const ADS =[
-            "https://maideneyeshadow.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
             "https://omg10.com/4/10390860"
         ];
+
+        // Ini memori penyimpanan link (Sama fungsinya kayak _0xStore di versi tombol)
+        let linkStore =[];
 
         function showCreateMode() {
             document.getElementById('create-mode').style.display = 'block';
@@ -64,32 +66,47 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            // 1. Ubah teks link menjadi tulisan biru yang ada onClick-nya
-            // (Disamakan dengan versi tombol yang pakai onClick)
+            linkStore =[];
+            let linkIndex = 0;
+
+            // Logikanya persis tombol: Setiap link dikasih nomor index (handleClick(0), handleClick(1), dst)
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                // Di-encode pakai base64 (btoa) biar tanda baca di URL gak merusak HTML
-                const safeUrl = btoa(url);
-                return '<span class="link-blue" onclick="executeRedirect(atob(\'' + safeUrl + '\'))">' + url + '</span>';
+                linkStore.push(url);
+                const currentIdx = linkIndex++;
+                return '<span class="link-blue" onclick="handleClick(' + currentIdx + ')">' + url + '</span>';
             });
             
             viewDiv.innerHTML = linkedText;
         }
 
-        // --- FUNGSI INI 100% HASIL COPAS DARI VERSI TOMBOL (STEALTH MODE) ---
+        // --- INI FUNGSI YANG SAMA PERSIS DENGAN VERSI TOMBOL ---
+        function handleClick(index) {
+            const url = linkStore[index];
+            if (url) {
+                executeRedirect(url);
+            }
+        }
+
         function executeRedirect(url) {
-            // A. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
+            // 1. Modifikasi Link Pixeldrain (WAJIB ADA BIAR GAK AUTO-DOWNLOAD)
+            if (url.includes('pixeldrain.com/api/file/')) {
+                url = url.replace('/api/file/', '/u/');
+            }
+
+            // 2. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
             try { 
                 window.open(ADS[0], '_blank'); 
             } catch(e) {}
 
-            // B. Buka LINK ASLI (Konten) di Tab Baru
+            // 3. Buka LINK ASLI (Konten) di Tab Baru
             let contentWindow = window.open(url, '_blank');
 
-            // Safety Check: Jika browser memblokir Link Asli
+            // 4. Tab Lama (ini) ganti jadi Iklan KEDUA
             if (!contentWindow) {
+                // Safety Check: Jika popup konten keblokir total, buka konten disini
                 window.location.href = url;
             } else {
-                // C. Tab Lama (ini) ganti jadi Iklan KEDUA
+                // Jika konten sukses kebuka di depan, tab lama ini ubah jadi iklan
                 window.location.href = ADS[1];
             }
         }
@@ -131,7 +148,7 @@
                 document.getElementById('result-url').value = finalUrl;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) {
-                alert("Gagal konek ke KV! Pastikan Worker dan Pages sudah terhubung.");
+                alert("Gagal konek ke Database!");
             }
             btn.disabled = false; btn.innerText = "Buat Link";
         }
