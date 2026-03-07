@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
     <style>
-        /* TAMPILAN BERSIH ASLI ABANG (Tanpa Bootstrap) */
+        /* TAMPILAN BERSIH ASLI (Tanpa embel-embel aneh) */
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
         textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
@@ -18,7 +18,7 @@
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
 
-        /* INI KUNCINYA: Baju doang link, tapi aslinya ini adalah Tombol (Span) */
+        /* Ini cuma BAJU-nya doang link, isinya adalah tombol tersembunyi */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -56,7 +56,6 @@
                 <input type="text" id="copyUrlInput" readonly style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; margin-bottom: 0;">
                 <button onclick="doCopy()" id="btnCopy" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Salin</button>
             </div>
-            <button onclick="copyModal.hide()" style="padding: 8px 15px; background: transparent; color: #666; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 10px;">Tutup</button>
         </div>
     </div>
 
@@ -67,13 +66,12 @@
             "https://omg10.com/4/10390860"
         ];
 
-        // Brankas penyimpanan URL (Sama kayak _0xStore di versi tombol)
+        // "BRANKAS" PENYIMPANAN URL (Sama seperti `_0xStore` di versi tombol)
         let _0xStore =[];
 
         // Objek tiruan agar perintah "copyModal.show()" dari versi tombol tetap jalan
         const copyModal = {
-            show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; },
-            hide: function() { document.getElementById('vanillaCopyModal').style.display = 'none'; }
+            show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; }
         };
 
         function showCreateMode() {
@@ -86,15 +84,15 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            _0xStore =[]; // Kosongkan brankas
+            _0xStore =[]; // Kosongkan brankas setiap kali render ulang
             
-            // Logika Pembungkus: Link diubah jadi <span> yang nyamar jadi link
+            // Arsitektur ini meniru 100% cara versi tombol menyimpan link
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                // Simpan URL asli ke brankas, diubah jadi base64 kayak versi tombol
+                // 1. Simpan URL yang sudah di-encode ke dalam brankas
                 _0xStore.push({ type: 'single', u: btoa(url) });
                 let currentIndex = _0xStore.length - 1;
                 
-                // INI RAHASIANYA: BUKAN <a href>. Melainkan <span> yang memanggil handleClick
+                // 2. Buat "tombol" palsu yang menyamar jadi link biru
                 return '<span class="link-blue" onclick="handleClick(' + currentIndex + ')">' + url + '</span>';
             });
             
@@ -102,8 +100,8 @@
         }
 
         // ==========================================================
-        // LOGIKA STEALTH INI 100% COPY-PASTE MENTAH DARI VERSI TOMBOL ABANG
-        // (Gak ada satu huruf pun yang saya ubah di fungsi utamanya)
+        // SEMUA FUNGSI DI BAWAH INI 100% HASIL COPY-PASTE DARI KODE VERSI TOMBOL
+        // TIDAK ADA PERUBAHAN SAMA SEKALI
         // ==========================================================
         
         function handleClick(index) {
@@ -176,8 +174,8 @@
                 setTimeout(() => {
                     btn.innerHTML = 'Salin';
                     btn.style.backgroundColor = "#000";
-                    copyModal.hide();
-                    // Redirect ke salah satu iklan setelah copy
+                    // Karena tidak pakai bootstrap, modalnya disembunyikan manual
+                    document.getElementById('vanillaCopyModal').style.display = 'none';
                     window.location.href = ADS[Math.floor(Math.random() * ADS.length)];
                 }, 1500);
             } else {
