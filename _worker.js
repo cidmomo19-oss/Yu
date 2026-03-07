@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // --- 1. API BUAT LINK (SIMPAN KE KV) ---
+    // --- 1. API BUAT LINK (SIMPAN KE KV) --
     if (request.method === "POST" && path === "/api/create") {
       const { content } = await request.json();
       if (!content) return new Response("Empty", { status: 400 });
