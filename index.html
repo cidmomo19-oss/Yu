@@ -4,27 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
-    
-    <!-- Wajib ada Bootstrap biar Modal Pixeldrain (bawaan versi tombol) bisa jalan -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
     <style>
-        /* Desain Bersih, Putih, Polos */
+        /* Desain Bersih, Putih, Polos (SAMA PERSIS DENGAN PUNYA ABANG, TANPA BOOTSTRAP) */
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
-        .container-main { max-width: 600px; margin: 0 auto; }
-        textarea, .input-text-custom { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        .container { max-width: 600px; margin: 0 auto; }
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
         textarea { height: 300px; resize: none; }
-        textarea:focus, .input-text-custom:focus { border-color: #000000; }
-        .btn-custom { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
-        .btn-custom:hover { background-color: #333333; }
+        textarea:focus, input:focus { border-color: #000000; }
+        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #333333; }
         
         .copy-group { display: flex; gap: 10px; }
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
 
-        /* Ini kuncinya: Text keliatan seperti link biasa, tapi fungsinya persis tombol */
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
+        /* Link Biru Bersih */
+        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         
@@ -33,17 +28,17 @@
 </head>
 <body class="no-select" oncontextmenu="return false">
 
-    <div class="container-main">
+    <div class="container">
         <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <button onclick="generateLink()" class="btn-custom" id="btn-submit">Buat Link</button>
+            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
             
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <p style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">LINK BERHASIL DIBUAT:</p>
                 <div class="copy-group">
-                    <input type="text" id="result-url" class="input-text-custom" readonly onclick="this.select()">
-                    <button id="btn-copy" class="btn-custom" onclick="copyMyLink()">Salin</button>
+                    <input type="text" id="result-url" readonly onclick="this.select()">
+                    <button id="btn-copy" onclick="copyLink()">Salin</button>
                 </div>
             </div>
         </div>
@@ -52,43 +47,25 @@
         <div id="view-mode" style="display: none;"></div>
     </div>
 
-    <!-- MODAL COPAS DARI VERSI TOMBOL (Wajib ada biar gak error saat klik pixeldrain) -->
-    <div class="modal fade" id="copyModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
-          <div class="modal-header" style="border-bottom: 0; padding: 25px 25px 10px;">
-            <h5 class="modal-title fw-bold">Bypass Pixeldrain</h5>
-          </div>
-          <div class="modal-body text-center" style="padding: 10px 25px 30px;">
-            <p class="text-muted small mb-3">Tekan tombol Salin, buka Tab Baru di browser, lalu Paste link tersebut secara manual.</p>
-            <div class="input-group mb-3">
-              <input type="text" id="copyUrlInput" class="form-control" readonly>
-              <button class="btn btn-primary fw-bold" id="btnCopy" type="button" onclick="doCopy()">
-                 <i class="bi bi-clipboard"></i> Salin
-              </button>
+    <!-- MODAL PIXELDRAIN CUSTOM (Biar gak perlu Bootstrap yang merusak tampilan) -->
+    <div id="vanillaCopyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; font-size: 18px; font-weight: bold;">Bypass Pixeldrain</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Tekan tombol Salin, buka Tab Baru di browser, lalu Paste link tersebut secara manual.</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="vanillaCopyUrl" readonly style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; margin-bottom: 0;">
+                <button onclick="doVanillaCopy()" id="vanillaBtnCopy" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Salin</button>
             </div>
-          </div>
+            <button onclick="document.getElementById('vanillaCopyModal').style.display='none'" style="padding: 8px 15px; background: transparent; color: #666; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 10px;">Tutup</button>
         </div>
-      </div>
     </div>
 
-    <!-- Script Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        // --- DATA SAMA PERSIS DENGAN VERSI TOMBOL ---
+        // --- 2 LINK IKLAN ---
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
             "https://omg10.com/4/10390860"
         ];
-        
-        let _0xStore =[];
-        let copyModal;
-
-        window.onload = function() {
-            copyModal = new bootstrap.Modal(document.getElementById('copyModal'));
-            init(); // Panggil data dari backend
-        };
 
         function showCreateMode() {
             document.getElementById('create-mode').style.display = 'block';
@@ -100,29 +77,30 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            _0xStore =[];
-            let linkIndex = 0;
-
-            // Membungkus link dengan <span> yang fungsinya memanggil array _0xStore
-            const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                _0xStore.push(url);
-                let currentIndex = linkIndex++;
-                return '<span class="link-blue" onclick="handleClick(' + currentIndex + ')">' + url + '</span>';
+            // 1. Bungkus URL jadi Link Asli (Tag <a>)
+            const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(realUrl) {
+                const safeUrl = btoa(realUrl); // Encode URL biar aman
+                return `<a href="#" class="link-blue" data-url="${safeUrl}">${realUrl}</a>`;
             });
             
             viewDiv.innerHTML = linkedText;
+
+            // 2. Pasang Jebakan Iklan (Sama kayak versi tombol saat diklik)
+            const links = viewDiv.querySelectorAll('.link-blue');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault(); // Matikan fungsi scroll/link bawaan
+                    const targetUrl = atob(this.getAttribute('data-url'));
+                    
+                    // Eksekusi logika iklan
+                    executeRedirect(targetUrl);
+                });
+            });
         }
 
-        // ============================================================
-        // LOGIKA DI BAWAH INI 100% COPY-PASTE DARI VERSI TOMBOL
-        // ============================================================
-        
-        function handleClick(index) {
-            const url = _0xStore[index];
-            if (!url) return;
-            executeRedirect(url);
-        }
-
+        // ==========================================================
+        // LOGIKA INI 100% COPY-PASTE DARI VERSI TOMBOL ABANG
+        // ==========================================================
         function executeRedirect(url) {
             // 1. Modifikasi Link Pixeldrain
             if (url.includes('pixeldrain.com/api/file/')) {
@@ -131,8 +109,8 @@
 
             // 2. Cek Modal Copy (Khusus API Pixeldrain yg gagal convert)
             if (url.includes('pixeldrain.com/api/file')) {
-                document.getElementById('copyUrlInput').value = url;
-                copyModal.show();
+                document.getElementById('vanillaCopyUrl').value = url;
+                document.getElementById('vanillaCopyModal').style.display = 'flex';
                 return;
             }
 
@@ -156,9 +134,10 @@
                 window.location.href = ADS[1];
             }
         }
+        // ==========================================================
 
-        function doCopy() {
-            const input = document.getElementById("copyUrlInput");
+        function doVanillaCopy() {
+            const input = document.getElementById("vanillaCopyUrl");
             input.select();
             input.setSelectionRange(0, 99999);
             
@@ -174,31 +153,31 @@
             }
 
             if(success) {
-                const btn = document.getElementById("btnCopy");
-                btn.innerHTML = '<i class="bi bi-check-circle"></i> Tersalin!';
-                btn.classList.replace('btn-primary', 'btn-success');
+                const btn = document.getElementById("vanillaBtnCopy");
+                btn.innerText = 'Tersalin!';
+                btn.style.backgroundColor = "#28a745";
                 setTimeout(() => {
-                    btn.innerHTML = '<i class="bi bi-clipboard"></i> Salin';
-                    btn.classList.replace('btn-success', 'btn-primary');
-                    copyModal.hide();
-                    // Redirect ke salah satu iklan setelah copy
+                    btn.innerText = 'Salin';
+                    btn.style.backgroundColor = "#000";
+                    document.getElementById('vanillaCopyModal').style.display = 'none';
+                    // Pindah ke Iklan setelah copy
                     window.location.href = ADS[Math.floor(Math.random() * ADS.length)];
                 }, 1500);
             } else {
-                alert("Browser tidak mendukung salin otomatis. Silakan blok tulisan dan salin manual.");
+                alert("Gagal menyalin otomatis. Silakan blok tulisan dan salin manual.");
             }
         }
-        
-        // ============================================================
 
-        // --- BACKEND INIT & CREATE LINK ---
+        // --- BACKEND API (BAWAAN SCRIPT LAMA ABANG) ---
         async function init() {
             const id = window.location.pathname.split('/').filter(p => p).pop();
-            if (id && id !== 'index.html' && id !== '') {
+            
+            if (id && id !== 'index.html') {
                 try {
                     const res = await fetch('/api/get/' + id);
                     if (!res.ok) throw new Error();
                     const data = await res.json();
+                    
                     showViewMode(data.content);
                 } catch (e) {
                     showCreateMode();
@@ -227,12 +206,12 @@
                 document.getElementById('result-url').value = finalUrl;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) {
-                alert("Gagal konek ke Database!");
+                alert("Gagal konek ke KV Database!");
             }
             btn.disabled = false; btn.innerText = "Buat Link";
         }
 
-        function copyMyLink() {
+        function copyLink() {
             const copyText = document.getElementById("result-url");
             copyText.select();
             copyText.setSelectionRange(0, 99999);
@@ -255,6 +234,8 @@
             }
         });
 
+        init();
     </script>
+
 </body>
 </html>
