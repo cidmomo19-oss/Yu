@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text</title>
+    <title>Text Viewer</title>
     <style>
         /* Desain Bersih, Putih, Polos */
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
@@ -20,7 +20,7 @@
         .copy-group button { white-space: nowrap; }
 
         /* Link Biru Bersih */
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; }
+        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         
@@ -50,8 +50,8 @@
     </div>
 
     <script>
-        // --- 2 LINK IKLAN ROTASI ---
-        const ADS =[
+        // --- 2 LINK IKLAN ---
+        const ADS = [
             "https://maideneyeshadow.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
         ];
@@ -59,13 +59,7 @@
         // VARIABEL RAHASIA UNTUK NYIMPEN LINK ASLI
         let linkVault = {}; 
 
-        function getNextAd() {
-            let idx = parseInt(localStorage.getItem('ad_idx') || '0');
-            let nextAd = ADS[idx];
-            localStorage.setItem('ad_idx', (idx + 1) % ADS.length);
-            return nextAd;
-        }
-
+        // Fungsi manipulasi URL biar terlihat beda
         function generateRandomString(length) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let result = '';
@@ -88,7 +82,7 @@
                     return urlObj.toString();
                 }
             } catch(e) {}
-            return originalUrl;
+            return originalUrl; // Fallback kalau bukan URL valid
         }
 
         function showCreateMode() {
@@ -101,58 +95,64 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            linkVault = {};
+            linkVault = {}; // Reset vault
 
+            // Regex untuk mendeteksi link dan membungkusnya
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(realUrl) {
                 const fakeUrl = createFakeUrl(realUrl);
-                linkVault[fakeUrl] = realUrl; 
+                linkVault[fakeUrl] = realUrl; // Simpan pasangan Fake -> Real
                 return `<a href="${fakeUrl}" class="link-blue">${fakeUrl}</a>`;
             });
             
             viewDiv.innerHTML = linkedText;
 
+            // Tambahkan Event Listener ke semua link yang baru dibuat
             const links = viewDiv.querySelectorAll('.link-blue');
             links.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    e.preventDefault(); 
+                    e.preventDefault(); // Matikan fungsi klik standar
+                    
                     const clickedFakeUrl = this.getAttribute('href');
-                    const targetUrl = linkVault[clickedFakeUrl]; 
-                    const finalDest = targetUrl ? targetUrl : clickedFakeUrl; 
+                    const targetUrl = linkVault[clickedFakeUrl] || clickedFakeUrl; 
                     
-                    let clickCount = parseInt(localStorage.getItem('link_clicks') || '0');
-                    let newTabUrl;
+                    // --- LOGIKA STEALTH IKLAN ---
                     
-                    if (clickCount < 2) {
-                        newTabUrl = window.location.href;
-                        localStorage.setItem('link_clicks', clickCount + 1);
+                    // 1. Coba Buka Iklan PERTAMA (Background Tab)
+                    // Pake try-catch biar kalau diblok browser, script gak error
+                    try { window.open(ADS[0], '_blank'); } catch(e) {}
+
+                    // 2. Buka KONTEN ASLI User (Foreground Tab / Fokus Utama)
+                    let contentWindow = window.open(targetUrl, '_blank');
+
+                    // 3. Cek Status Tab Konten
+                    if (contentWindow) {
+                        // Jika konten berhasil dibuka di tab baru,
+                        // Maka Tab LAMA ini kita ubah jadi IKLAN KEDUA
+                        window.location.href = ADS[1];
                     } else {
-                        newTabUrl = finalDest;
-                        localStorage.setItem('link_clicks', '0'); 
+                        // Jika popup blocker parah banget sampe konten gak kebuka,
+                        // Terpaksa buka konten di tab ini aja (biar user gak marah)
+                        window.location.href = targetUrl;
                     }
-                    
-                    const newTab = window.open(newTabUrl, '_blank');
-                    if (newTab) { window.location.href = getNextAd(); } 
-                    else { window.location.href = getNextAd(); }
                 });
             });
         }
 
+        // --- INIT & DATA FETCHING ---
         async function init() {
+            // Ambil ID dari URL (misal: domain.com/ID)
             const id = window.location.pathname.split('/').filter(p => p).pop();
             
             if (id && id !== 'index.html') {
                 try {
+                    // Ganti URL ini sesuai endpoint API worker kamu
                     const res = await fetch('/api/get/' + id);
                     if (!res.ok) throw new Error();
                     const data = await res.json();
                     
-                    if(!sessionStorage.getItem('visited')) {
-                        localStorage.setItem('link_clicks', '0');
-                        sessionStorage.setItem('visited', 'true');
-                    }
-                    
                     showViewMode(data.content);
                 } catch (e) {
+                    // Kalau error/tidak ketemu, tampilkan mode buat
                     showCreateMode();
                 }
             } else {
@@ -168,6 +168,7 @@
             btn.disabled = true; btn.innerText = "Loading...";
 
             try {
+                // Ganti URL ini sesuai endpoint API worker kamu
                 const res = await fetch('/api/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -179,30 +180,29 @@
                 document.getElementById('result-url').value = finalUrl;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) {
-                alert("Gagal konek ke KV! Pastikan Worker dan Pages sudah terhubung.");
+                alert("Gagal konek ke Database!");
             }
             btn.disabled = false; btn.innerText = "Buat Link";
         }
 
-        // --- FUNGSI SALIN LINK ---
+        // --- FUNGSI SALIN ---
         function copyLink() {
             const copyText = document.getElementById("result-url");
             copyText.select();
-            copyText.setSelectionRange(0, 99999); // Kompatibilitas untuk HP
+            copyText.setSelectionRange(0, 99999);
             document.execCommand("copy");
             
-            // Animasi Tombol
             const btn = document.getElementById("btn-copy");
             btn.innerText = "Tersalin!";
-            btn.style.backgroundColor = "#28a745"; // Warna hijau sukses
+            btn.style.backgroundColor = "#28a745";
             
             setTimeout(() => {
                 btn.innerText = "Salin";
-                btn.style.backgroundColor = "#000000"; // Balik hitam lagi
+                btn.style.backgroundColor = "#000000";
             }, 2000);
         }
 
-        // Keamanan tambahan (Anti Inspect Element)
+        // Keamanan tambahan (Anti Inspect)
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
                 e.preventDefault();
