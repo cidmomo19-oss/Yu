@@ -18,6 +18,7 @@
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
 
+        /* INI KUNCINYA: Baju doang link, tapi aslinya ini "tombol" */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -47,14 +48,14 @@
     </div>
 
     <script>
-        // --- LINK IKLAN DISAMAKAN PERSIS DENGAN VERSI TOMBOL ---
+        // --- 2 LINK IKLAN ---
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
             "https://omg10.com/4/10390860"
         ];
 
-        // Ini memori penyimpanan link (Sama fungsinya kayak _0xStore di versi tombol)
-        let linkStore =[];
+        // ARRAY PENYIMPANAN LINK (Sama persis fungsinya kayak _0xStore di versi tombol)
+        let _0xStore =[];
 
         function showCreateMode() {
             document.getElementById('create-mode').style.display = 'block';
@@ -66,51 +67,56 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            linkStore =[];
-            let linkIndex = 0;
+            _0xStore =[]; // Reset array
+            let i = 0;
 
-            // Logikanya persis tombol: Setiap link dikasih nomor index (handleClick(0), handleClick(1), dst)
+            // Logika ganti teks jadi "Tombol" berbentuk tulisan biru
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                linkStore.push(url);
-                const currentIdx = linkIndex++;
-                return '<span class="link-blue" onclick="handleClick(' + currentIdx + ')">' + url + '</span>';
+                // Masukkan URL asli ke dalam array Brankas (_0xStore)
+                _0xStore.push(url);
+                
+                let currentIndex = i;
+                i++;
+                
+                // KITA GAK PAKE <a href="">. Kita murni pake <span> sama kayak <div> di tombol.
+                return `<span class="link-blue" onclick="handleClick(${currentIndex})">${url}</span>`;
             });
             
             viewDiv.innerHTML = linkedText;
         }
 
-        // --- INI FUNGSI YANG SAMA PERSIS DENGAN VERSI TOMBOL ---
+        // --- FUNGSI DI BAWAH INI COPAS 100% DARI VERSI TOMBOL SEBELUMNYA ---
+
         function handleClick(index) {
-            const url = linkStore[index];
-            if (url) {
-                executeRedirect(url);
-            }
+            const url = _0xStore[index];
+            if (!url) return;
+            executeRedirect(url);
         }
 
         function executeRedirect(url) {
-            // 1. Modifikasi Link Pixeldrain (WAJIB ADA BIAR GAK AUTO-DOWNLOAD)
+            // 1. Modifikasi Link Pixeldrain (biar gak auto-download yang ngerusak stealth)
             if (url.includes('pixeldrain.com/api/file/')) {
                 url = url.replace('/api/file/', '/u/');
             }
 
-            // 2. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
+            // A. Buka Iklan PERTAMA di Tab Baru (Background)
             try { 
                 window.open(ADS[0], '_blank'); 
             } catch(e) {}
 
-            // 3. Buka LINK ASLI (Konten) di Tab Baru
+            // B. Buka LINK ASLI (Konten) di Tab Baru (Ini yang fokus di mata user)
             let contentWindow = window.open(url, '_blank');
 
-            // 4. Tab Lama (ini) ganti jadi Iklan KEDUA
+            // C. Jika Konten berhasil dibuka, Tab Lama ini ganti jadi Iklan KEDUA
             if (!contentWindow) {
-                // Safety Check: Jika popup konten keblokir total, buka konten disini
+                // Safety check: Kalau pop-up keblokir total, buka konten disini
                 window.location.href = url;
             } else {
-                // Jika konten sukses kebuka di depan, tab lama ini ubah jadi iklan
                 window.location.href = ADS[1];
             }
         }
 
+        // --- API & FUNGSI BAWAAN ---
         async function init() {
             const id = window.location.pathname.split('/').filter(p => p).pop();
             
