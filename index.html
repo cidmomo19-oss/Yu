@@ -47,14 +47,11 @@
     </div>
 
     <script>
-        // --- LINK IKLAN DISAMAKAN PERSIS DENGAN VERSI TOMBOL ---
+        // --- 2 LINK IKLAN ---
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
             "https://omg10.com/4/10390860"
         ];
-
-        // Ini memori penyimpanan link (Sama fungsinya kayak _0xStore di versi tombol)
-        let linkStore =[];
 
         function showCreateMode() {
             document.getElementById('create-mode').style.display = 'block';
@@ -66,51 +63,42 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            linkStore =[];
-            let linkIndex = 0;
-
-            // Logikanya persis tombol: Setiap link dikasih nomor index (handleClick(0), handleClick(1), dst)
+            // LOGIKA NATIVE ANCHOR:
+            // Kita bungkus link dengan tag <a> dan target="_blank". 
+            // Ini menjamin browser akan merespon klik dengan membuka tab konten di depan layar!
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                linkStore.push(url);
-                const currentIdx = linkIndex++;
-                return '<span class="link-blue" onclick="handleClick(' + currentIdx + ')">' + url + '</span>';
+                const safeUrl = btoa(url);
+                return '<a href="' + url + '" target="_blank" class="link-blue" onclick="handleClick(event, atob(\'' + safeUrl + '\'))">' + url + '</a>';
             });
             
             viewDiv.innerHTML = linkedText;
         }
 
-        // --- INI FUNGSI YANG SAMA PERSIS DENGAN VERSI TOMBOL ---
-        function handleClick(index) {
-            const url = linkStore[index];
-            if (url) {
-                executeRedirect(url);
-            }
-        }
+        function handleClick(event, url) {
+            // RAHASIA STEALTH:
+            // Kita TIDAK mencegah aksi bawaan browser (TIDAK ADA event.preventDefault()).
+            // Jadi Tab Konten NATIVE akan me-override fokus ke depan layar.
 
-        function executeRedirect(url) {
-            // 1. Modifikasi Link Pixeldrain (WAJIB ADA BIAR GAK AUTO-DOWNLOAD)
-            if (url.includes('pixeldrain.com/api/file/')) {
-                url = url.replace('/api/file/', '/u/');
+            // 1. Tangani bug Auto-Download Pixeldrain
+            let finalUrl = url;
+            if (finalUrl.includes('pixeldrain.com/api/file/')) {
+                finalUrl = finalUrl.replace('/api/file/', '/u/');
+                event.currentTarget.href = finalUrl; // Perbarui link detik itu juga
             }
 
-            // 2. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
+            // 2. Buka Iklan 1 di background (Jika browser ngeblokir, dibiarkan saja)
             try { 
                 window.open(ADS[0], '_blank'); 
             } catch(e) {}
 
-            // 3. Buka LINK ASLI (Konten) di Tab Baru
-            let contentWindow = window.open(url, '_blank');
-
-            // 4. Tab Lama (ini) ganti jadi Iklan KEDUA
-            if (!contentWindow) {
-                // Safety Check: Jika popup konten keblokir total, buka konten disini
-                window.location.href = url;
-            } else {
-                // Jika konten sukses kebuka di depan, tab lama ini ubah jadi iklan
+            // 3. Ubah Tab Lama jadi Iklan 2
+            // Pakai delay (setTimeout) sepersekian detik biar browser fokus pindah ke tab konten dulu
+            setTimeout(() => {
                 window.location.href = ADS[1];
-            }
+            }, 100);
         }
 
+        // --- INIT & BACKEND API ---
         async function init() {
             const id = window.location.pathname.split('/').filter(p => p).pop();
             
