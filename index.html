@@ -14,6 +14,11 @@
         button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
         button:hover { background-color: #333333; }
         
+        /* Flexbox buat tombol salin biar sejajar */
+        .copy-group { display: flex; gap: 10px; }
+        .copy-group input { margin-bottom: 0; }
+        .copy-group button { white-space: nowrap; }
+
         /* Link Biru Bersih */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; }
         .link-blue:hover { text-decoration: underline; }
@@ -29,9 +34,14 @@
         <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <button onclick="generateLink()" id="btn-submit">Buat</button>
+            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            
             <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly onclick="this.select()">
+                <p style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">LINK BERHASIL DIBUAT:</p>
+                <div class="copy-group">
+                    <input type="text" id="result-url" readonly onclick="this.select()">
+                    <button id="btn-copy" onclick="copyLink()">Salin</button>
+                </div>
             </div>
         </div>
 
@@ -46,7 +56,7 @@
             "https://omg10.com/4/10390860"
         ];
 
-        // VARIABEL RAHASIA UNTUK NYIMPEN LINK ASLI (Tidak akan masuk ke HTML)
+        // VARIABEL RAHASIA UNTUK NYIMPEN LINK ASLI
         let linkVault = {}; 
 
         function getNextAd() {
@@ -78,7 +88,7 @@
                     return urlObj.toString();
                 }
             } catch(e) {}
-            return originalUrl; // Fallback jika format aneh
+            return originalUrl;
         }
 
         function showCreateMode() {
@@ -91,45 +101,31 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            // Bersihkan vault setiap kali render
             linkVault = {};
 
-            // Render Teks & Simpan Link Asli MURNI DI JAVASCRIPT
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(realUrl) {
                 const fakeUrl = createFakeUrl(realUrl);
-                
-                // SIMPAN KE MEMORI JAVASCRIPT (Kunci: fakeUrl, Nilai: realUrl)
                 linkVault[fakeUrl] = realUrl; 
-
-                // HANYA RENDER FAKE URL KE HTML! Gak ada atribut data-real lagi.
                 return `<a href="${fakeUrl}" class="link-blue">${fakeUrl}</a>`;
             });
             
             viewDiv.innerHTML = linkedText;
 
-            // EVENT KLIK "MAJU TERUS 3X" (Narik link asli dari memori JS)
             const links = viewDiv.querySelectorAll('.link-blue');
             links.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault(); 
-                    
                     const clickedFakeUrl = this.getAttribute('href');
-                    
-                    // AMBIL LINK ASLI DARI MEMORI BERDASARKAN LINK PALSU YANG DIKLIK
                     const targetUrl = linkVault[clickedFakeUrl]; 
-                    
-                    // Kalau entah kenapa gak ada di memori, pake link palsunya aja (biar dia error)
                     const finalDest = targetUrl ? targetUrl : clickedFakeUrl; 
                     
                     let clickCount = parseInt(localStorage.getItem('link_clicks') || '0');
                     let newTabUrl;
                     
                     if (clickCount < 2) {
-                        // KLIK 1 & 2: Buka halaman duplikat
                         newTabUrl = window.location.href;
                         localStorage.setItem('link_clicks', clickCount + 1);
                     } else {
-                        // KLIK 3: Buka KONTEN ASLI secara rahasia
                         newTabUrl = finalDest;
                         localStorage.setItem('link_clicks', '0'); 
                     }
@@ -183,12 +179,30 @@
                 document.getElementById('result-url').value = finalUrl;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) {
-                alert("Gagal konek ke KV!");
+                alert("Gagal konek ke KV! Pastikan Worker dan Pages sudah terhubung.");
             }
-            btn.disabled = false; btn.innerText = "Buat";
+            btn.disabled = false; btn.innerText = "Buat Link";
         }
 
-        // Tambahan keamanan: Cegah pencuri neken F12 atau Ctrl+U
+        // --- FUNGSI SALIN LINK ---
+        function copyLink() {
+            const copyText = document.getElementById("result-url");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // Kompatibilitas untuk HP
+            document.execCommand("copy");
+            
+            // Animasi Tombol
+            const btn = document.getElementById("btn-copy");
+            btn.innerText = "Tersalin!";
+            btn.style.backgroundColor = "#28a745"; // Warna hijau sukses
+            
+            setTimeout(() => {
+                btn.innerText = "Salin";
+                btn.style.backgroundColor = "#000000"; // Balik hitam lagi
+            }, 2000);
+        }
+
+        // Keamanan tambahan (Anti Inspect Element)
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
                 e.preventDefault();
