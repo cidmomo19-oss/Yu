@@ -4,44 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Content Viewer</title>
+    <!-- Library Enkripsi AES -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; text-align: center; }
-        
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
-        textarea:focus, input:focus { border-color: #007bff; }
-        
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
-        button:hover { background-color: #333333; }
-        
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
-        .link-blue:hover { color: #ff0000; }
-
-        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 16px; color: #333; width: 280px; margin: 0 auto; }
-        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; transition: all 0.2s; }
-        .captcha-box:hover { border-color: #888; }
-        
-        @keyframes spin-anim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .spinner-icon { width: 18px; height: 18px; border: 3px solid #e0e0e0; border-top: 3px solid #0056b3; border-radius: 50%; animation: spin-anim 1s linear infinite; }
-        
+        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; font-size: 16px; color: #333; width: 280px; margin: 0 auto; }
+        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { width: 18px; height: 18px; border: 3px solid #e0e0e0; border-top: 3px solid #0056b3; border-radius: 50%; animation: spin 1s linear infinite; }
         #continue-btn { display: none; margin: 25px auto 0; background-color: #007bff; color: #fff; width: auto; }
-        #continue-btn:hover { background-color: #0056b3; }
-
-        .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
-
+        .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; }
         #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        .no-select { -webkit-user-select: none; user-select: none; }
     </style>
 </head>
 <body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        
         <!-- 1. MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
+            <textarea id="input-text" placeholder="Teks & Link Asli..."></textarea>
+            <input type="text" id="input-password" placeholder="Password (Opsional)" autocomplete="off">
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
@@ -49,241 +36,183 @@
             </div>
         </div>
 
-        <!-- 2. HALAMAN VERIFIKASI ROBOT -->
+        <!-- 2. HALAMAN ROBOT -->
         <div id="robot-mode" style="display: none;">
-            <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 8V5"></path><circle cx="12" cy="3" r="2"></circle></svg>
-            <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
-            <div class="captcha-btn" id="captcha-wrap">
+            <h2 style="font-weight: 600;">Security Check</h2>
+            <div class="captcha-btn">
                 <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
-                <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
+                <span>I'm not a robot</span>
             </div>
-            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut ke Halaman</button>
+            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut</button>
         </div>
 
         <!-- 3. HALAMAN PASSWORD -->
         <div id="password-mode" style="display: none;">
             <div class="pwd-container">
-                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <h2 style="margin-top: 0; font-size: 20px; font-weight: 600;">Halaman Terkunci</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Masukkan password untuk melihat konten.</p>
-                <input type="text" id="pwd-input" placeholder="Ketik password di sini..." autocomplete="off" onfocus="handlePwdClick()">
-                <p class="error-msg" id="pwd-error">Password salah!</p>
+                <h2 style="font-weight: 600;">Halaman Terkunci</h2>
+                <input type="text" id="pwd-input" placeholder="Masukkan password..." autocomplete="off" onfocus="handlePwdClick()">
                 <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
             </div>
         </div>
         
-        <!-- 4. HALAMAN VIEW KONTEN -->
+        <!-- 4. MODE VIEW KONTEN -->
         <div id="view-mode" style="display: none;"></div>
 
-        <!-- 5. HALAMAN LANJUTKAN -->
+        <!-- 5. HALAMAN LANJUTKAN (AES SECURED) -->
         <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
-             <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
-            <h2 style="margin-top: 10px; font-weight: 600;">Link Anda Siap</h2>
-            <p style="color: #666; margin-bottom: 30px;">Klik untuk melanjutkan ke tujuan akhir.</p>
+            <h2 style="font-weight: 600;">Link Anda Siap</h2>
+            <p style="color: #666; margin-bottom: 30px;">Klik tombol di bawah untuk membuka link asli.</p>
             <button id="lanjutkan-btn" onclick="openFinalLink()" style="width: auto; padding: 12px 40px; background-color: #28a745;">Lanjutkan</button>
         </div>
     </div>
 
     <script>
-        const ADS =[
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
-            "https://omg10.com/4/10390860"
-        ];
-        let _0xVault =[]; 
-        let _pageData = null;
+        const ADS =["https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9","https://omg10.com/4/10390860"];
+        let _0xVault =[]; let _pageData = null; let _currentId = null;
 
         function getNextAd() {
-            let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
+            let ptr = parseInt(localStorage.getItem('_ad_ptr') || '0');
             let ad = ADS[ptr % ADS.length];
-            localStorage.setItem('_ad_pointer', ptr + 1);
+            localStorage.setItem('_ad_ptr', ptr + 1);
             return ad;
         }
 
-        function hideAllModes() {
-            ['create-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
-                document.getElementById(id).style.display = 'none';
-            });
+        function hideAll() {
+            ['create-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => document.getElementById(id).style.display = 'none');
         }
 
-        // ==========================================
-        // ALUR UTAMA & PROGRESI HALAMAN
-        // ==========================================
-        function runProgressionChecks(id) {
-            hideAllModes();
-            
-            // 1. Cek Robot
-            const robotPassTime = localStorage.getItem('robot_pass_' + id);
-            const isRobotPassed = robotPassTime && (Date.now() - parseInt(robotPassTime) < 3600000); // 1 Jam
-            if (!isRobotPassed) {
-                document.getElementById('robot-mode').style.display = 'block';
-                if (sessionStorage.getItem('robot_state_' + id) === 'spinning') {
-                    showSpinnerVisual();
-                    setTimeout(finishSpinnerAndShowContinue, 1500);
-                }
-                return;
-            }
-
-            // 2. Cek Password
-            const hasPassword = _pageData.password && _pageData.password.trim() !== "";
-            if (hasPassword && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
-                document.getElementById('password-mode').style.display = 'block';
-                return;
-            }
-            
-            // 3. Lolos Semua -> LANGSUNG Tampilkan Konten
-            renderText(_pageData.content);
-        }
-
-        // ==========================================
-        // FUNGSI-FUNGSI JEBAKAN
-        // ==========================================
-        function verifyRobotClick(event) {
-            event.stopPropagation();
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            sessionStorage.setItem('robot_state_' + id, 'spinning');
+        // --- SISTEM ROBOT & PASSWORD ---
+        function verifyRobotClick(e) {
+            sessionStorage.setItem('robot_state_' + _currentId, 'spinning');
             const newTab = window.open(window.location.href, '_blank');
-            showSpinnerVisual();
-            if (newTab) { setTimeout(() => { window.location.href = getNextAd(); }, 1500); } 
-            else { setTimeout(finishSpinnerAndShowContinue, 1500); }
+            document.getElementById('c-box').innerHTML = '<div class="spinner"></div>';
+            if (newTab) setTimeout(() => window.location.href = getNextAd(), 1500);
+            else setTimeout(finishRobot, 1500);
         }
 
-        function showSpinnerVisual() {
+        function finishRobot() {
             const box = document.getElementById('c-box');
-            box.style.border = 'none'; box.style.backgroundColor = 'transparent';
-            box.innerHTML = '<div class="spinner-icon"></div>'; box.style.pointerEvents = 'none';
-        }
-
-        function finishSpinnerAndShowContinue() {
-            const box = document.getElementById('c-box');
-            box.style.border = '2px solid #28a745'; box.style.backgroundColor = '#28a745';
-            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            box.style.backgroundColor = '#28a745'; box.style.borderColor = '#28a745';
+            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" style="width:16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
             document.getElementById('continue-btn').style.display = 'block';
         }
 
         function continueToNextPhase() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            localStorage.setItem('robot_pass_' + id, Date.now());
-            sessionStorage.removeItem('robot_state_' + id); 
+            localStorage.setItem('robot_pass_' + _currentId, Date.now());
             const nextTab = window.open(window.location.href, '_blank');
-            if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
+            if (nextTab) window.location.href = getNextAd(); else window.location.reload();
         }
 
         function handlePwdClick() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            if (!sessionStorage.getItem('pwd_clicked_' + id)) {
-                sessionStorage.setItem('pwd_clicked_' + id, 'true');
-                const newTab = window.open(window.location.href, '_blank');
-                if (newTab) { window.location.href = getNextAd(); }
+            if (!sessionStorage.getItem('pwd_cl_' + _currentId)) {
+                sessionStorage.setItem('pwd_cl_' + _currentId, 't');
+                const nt = window.open(window.location.href, '_blank');
+                if (nt) window.location.href = getNextAd();
             }
         }
 
         function submitPassword() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            const pwdInput = document.getElementById('pwd-input').value;
-            if (pwdInput !== _pageData.password) {
-                document.getElementById('pwd-error').style.display = 'block';
-            } else {
-                localStorage.setItem('pwd_pass_' + id, _pageData.password);
-                const nextTab = window.open(window.location.href, '_blank');
-                if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
-            }
+            if (document.getElementById('pwd-input').value === _pageData.password) {
+                localStorage.setItem('pwd_pass_' + _currentId, _pageData.password);
+                const nt = window.open(window.location.href, '_blank');
+                if (nt) window.location.href = getNextAd(); else window.location.reload();
+            } else { alert("Salah!"); }
         }
 
-        // ==========================================
-        // SISTEM KONTEN & LINK
-        // ==========================================
-        function universalMask(url) {
+        // --- SISTEM AES MASKING ---
+        function mask(url) {
             try {
                 let u = new URL(url);
-                let newPath = u.pathname.split('/').map(part => (part.length > 5 && /[0-9]/.test(part)) ? (Math.random().toString(36).substring(2, 10) + (part.includes('.') ? '.' + part.split('.').pop() : '')) : part).join('/');
-                let params = new URLSearchParams(u.search);
-                params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
-                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
-            } catch (e) { return url; }
+                let np = u.pathname.split('/').map(p => (p.length > 5 && /[0-9]/.test(p)) ? Math.random().toString(36).substring(2,10) : p).join('/');
+                return u.origin + np + (u.search ? '?' + Math.random().toString(36).substring(2,8) : '');
+            } catch(e) { return url; }
         }
 
         function renderText(text) {
-            const viewDiv = document.getElementById('view-mode');
-            viewDiv.style.display = 'block'; _0xVault = [];
-            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                _0xVault.push(btoa(url));
-                return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
+            const div = document.getElementById('view-mode'); div.style.display = 'block';
+            div.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
+                _0xVault.push(url);
+                return `<span class="link-blue" onclick="handleLinkClick(${_0xVault.length-1}, event)">${mask(url)}</span>`;
             });
         }
 
-        function handleAdSystem(id, event) {
-            event.preventDefault();
-            const realLink = atob(_0xVault[id]);
-            const clickToken = 'click_' + btoa(realLink).substring(0, 12);
-            if (!sessionStorage.getItem(clickToken)) {
-                sessionStorage.setItem(clickToken, 'step2');
-                const adWin = window.open(getNextAd(), '_blank');
-                if (adWin) { adWin.blur(); window.focus(); }
-                setTimeout(() => { window.location.href = getNextAd(); }, 150);
+        function handleLinkClick(idx, e) {
+            e.preventDefault();
+            const real = _0xVault[idx];
+            const token = 'cl_' + btoa(real).substring(0,10);
+            if (!sessionStorage.getItem(token)) {
+                sessionStorage.setItem(token, 's2');
+                const ad = window.open(getNextAd(), '_blank');
+                if (ad) { ad.blur(); window.focus(); }
+                setTimeout(() => window.location.href = getNextAd(), 150);
             } else {
-                sessionStorage.removeItem(clickToken);
-                const continueUrl = `${window.location.origin}/lanjutkan#${btoa(realLink)}`;
-                const nextTab = window.open(continueUrl, '_blank');
-                if (nextTab) { window.location.href = getNextAd(); } else { window.location.href = continueUrl; }
+                sessionStorage.removeItem(token);
+                // ENKRIPSI LINK PAKAI AES SEBELUM DIKIRIM KE HALAMAN LANJUTKAN
+                const encrypted = CryptoJS.AES.encrypt(real, _pageData.secret).toString();
+                const contUrl = `${window.location.origin}/lanjutkan?id=${_currentId}#${encodeURIComponent(encrypted)}`;
+                const nt = window.open(contUrl, '_blank');
+                if (nt) window.location.href = getNextAd(); else window.location.href = contUrl;
             }
         }
-        
-        function openFinalLink() {
-            const realUrl = atob(window.location.hash.substring(1));
-            window.open(realUrl, '_blank');
-            window.location.href = getNextAd();
+
+        // --- HALAMAN LANJUTKAN (FINAL DECRYPT) ---
+        async function openFinalLink() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const encryptedData = decodeURIComponent(window.location.hash.substring(1));
+            
+            try {
+                const res = await fetch('/api/get/' + id);
+                const data = await res.json();
+                // DEKRIPSI PAKAI KUNCI DARI DATABASE (Safe Place)
+                const bytes = CryptoJS.AES.decrypt(encryptedData, data.secret);
+                const originalUrl = bytes.toString(CryptoJS.enc.Utf8);
+                
+                if (originalUrl) {
+                    window.open(originalUrl, '_blank');
+                    window.location.href = getNextAd();
+                }
+            } catch(e) { alert("Error!"); }
         }
 
-        // ==========================================
-        // INISIALISASI & ROUTING UTAMA
-        // ==========================================
+        // --- INIT ---
         async function init() {
             const path = window.location.pathname;
             if (path.startsWith('/lanjutkan')) {
-                hideAllModes(); document.getElementById('continue-to-link-mode').style.display = 'block';
+                hideAll(); document.getElementById('continue-to-link-mode').style.display = 'block';
                 return;
             }
-
-            const id = path.split('/').filter(p => p).pop();
-            if (id && id !== 'index.html' && id !== 'lanjutkan') {
+            _currentId = path.split('/').filter(p => p).pop();
+            if (_currentId && _currentId !== 'index.html') {
                 try {
-                    const res = await fetch('/api/get/' + id);
-                    if (!res.ok) throw new Error("Not found");
+                    const res = await fetch('/api/get/' + _currentId);
                     _pageData = await res.json();
-                    if(!_pageData.content) throw new Error("Content empty");
-                    runProgressionChecks(id);
-                } catch (e) {
-                    hideAllModes(); document.getElementById('create-mode').style.display = 'block';
-                }
-            } else {
-                hideAllModes(); document.getElementById('create-mode').style.display = 'block';
-            }
+                    hideAll();
+                    const rPass = localStorage.getItem('robot_pass_' + _currentId);
+                    if (!rPass || (Date.now() - rPass > 3600000)) {
+                        document.getElementById('robot-mode').style.display = 'block';
+                        if (sessionStorage.getItem('robot_state_' + _currentId) === 'spinning') finishRobot();
+                    } else if (_pageData.password && localStorage.getItem('pwd_pass_' + _currentId) !== _pageData.password) {
+                        document.getElementById('password-mode').style.display = 'block';
+                    } else { renderText(_pageData.content); }
+                } catch(e) { hideAll(); document.getElementById('create-mode').style.display = 'block'; }
+            } else { hideAll(); document.getElementById('create-mode').style.display = 'block'; }
         }
 
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             const pwd = document.getElementById('input-password').value;
             if (!text) return;
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "Processing...";
-            try {
-                const res = await fetch('/api/create', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text, password: pwd })
-                });
-                const data = await res.json();
-                document.getElementById('result-url').value = window.location.origin + '/' + data.id;
-                document.getElementById('result-box').style.display = 'block';
-            } catch (e) { alert("Error!"); }
-            btn.disabled = false; btn.innerText = "Buat Link";
+            const res = await fetch('/api/create', { method: 'POST', body: JSON.stringify({ content: text, password: pwd }) });
+            const data = await res.json();
+            document.getElementById('result-url').value = window.location.origin + '/' + data.id;
+            document.getElementById('result-box').style.display = 'block';
         }
 
         function copyLink() {
-            const copyText = document.getElementById("result-url");
-            copyText.select(); document.execCommand("copy");
-            document.getElementById("btn-copy").innerText = "Tersalin!";
-            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
+            const input = document.getElementById('result-url');
+            input.select(); document.execCommand('copy');
+            alert("Tersalin!");
         }
 
         init();
