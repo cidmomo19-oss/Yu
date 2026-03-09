@@ -47,7 +47,7 @@
         <div id="view-mode" style="display: none;"></div>
     </div>
 
-    <!-- MODAL COPY CUSTOM (Pengganti modal Bootstrap agar tampilan tetap bersih) -->
+    <!-- MODAL COPY CUSTOM -->
     <div id="vanillaCopyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
             <h3 style="margin-top: 0; font-size: 18px; font-weight: bold;">Bypass Pixeldrain</h3>
@@ -66,10 +66,9 @@
             "https://omg10.com/4/10390860"
         ];
 
-        // "BRANKAS" PENYIMPANAN URL (Sama seperti `_0xStore` di versi tombol)
+        // "BRANKAS" PENYIMPANAN URL
         let _0xStore =[];
 
-        // Objek tiruan agar perintah "copyModal.show()" dari versi tombol tetap jalan
         const copyModal = {
             show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; }
         };
@@ -84,73 +83,100 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             
-            _0xStore =[]; // Kosongkan brankas setiap kali render ulang
+            _0xStore =[];
             
-            // Arsitektur ini meniru 100% cara versi tombol menyimpan link
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                // 1. Simpan URL yang sudah di-encode ke dalam brankas
                 _0xStore.push({ type: 'single', u: btoa(url) });
                 let currentIndex = _0xStore.length - 1;
                 
-                // 2. Buat "tombol" palsu yang menyamar jadi link biru
-                return '<span class="link-blue" onclick="handleClick(' + currentIndex + ')">' + url + '</span>';
+                // ==========================================================
+                // BAGIAN INI DIUBAH: Kita ganti onclick menjadi onmousedown dan onmouseup
+                // ==========================================================
+                return `<span class="link-blue" 
+                              onmousedown="handleAdTrigger(${currentIndex}, event)" 
+                              onmouseup="handleFinalRedirect(${currentIndex}, event)">${url}</span>`;
             });
             
             viewDiv.innerHTML = linkedText;
         }
 
-        // ==========================================================
-        // SEMUA FUNGSI DI BAWAH INI 100% HASIL COPY-PASTE DARI KODE VERSI TOMBOL
-        // TIDAK ADA PERUBAHAN SAMA SEKALI
-        // ==========================================================
-        
-        function handleClick(index) {
-            prepareFinalAction(index);
-        }
+        // =======================================================================
+        // FUNGSI LOGIKA IKLAN BARU (MENGGANTIKAN handleClick & executeRedirect)
+        // =======================================================================
 
-        function prepareFinalAction(index) {
+        /**
+         * Fungsi ini dieksekusi saat tombol mouse DITEKAN (mousedown).
+         * Tugasnya: Cek status klik, jika ini klik pertama, buka IKLAN 1.
+         */
+        function handleAdTrigger(index, event) {
+            event.preventDefault(); // Mencegah perilaku default browser
             const item = _0xStore[index];
             if (!item) return;
 
-            if (item.type === 'single') {
-                executeRedirect(atob(item.u));
+            const linkId = 'adv_state_' + btoa(atob(item.u)).substring(0, 20);
+            const clickState = sessionStorage.getItem(linkId);
+
+            if (!clickState) {
+                // KLIK PERTAMA: Buka iklan pertama
+                try {
+                    window.open(ADS[0], '_blank');
+                } catch(e) {
+                    console.error("Popup blocker mungkin memblokir iklan 1:", e);
+                }
             }
         }
 
-        function executeRedirect(url) {
-            // 1. Modifikasi Link Pixeldrain
-            if (url.includes('pixeldrain.com/api/file/')) {
-                url = url.replace('/api/file/', '/u/');
-            }
-
-            // 2. Cek Modal Copy (Khusus API Pixeldrain yg gagal convert)
-            if (url.includes('pixeldrain.com/api/file')) {
-                document.getElementById('copyUrlInput').value = url;
-                copyModal.show();
-                return;
-            }
-
-            // --- START LOGIKA DUPLIKAT IKLAN (STEALTH MODE) ---
+        /**
+         * Fungsi ini dieksekusi saat tombol mouse DILEPAS (mouseup).
+         * Tugasnya: Jika ini klik pertama, buka IKLAN 2 dan simpan status.
+         *           Jika ini klik kedua, buka LINK ASLI.
+         */
+        function handleFinalRedirect(index, event) {
+            event.preventDefault();
+            const item = _0xStore[index];
+            if (!item) return;
             
-            // A. Buka Iklan PERTAMA di Tab Baru (Mencoba bypass popup blocker)
-            try { 
-                window.open(ADS[0], '_blank'); 
-            } catch(e) {}
+            const originalUrl = atob(item.u);
+            const linkId = 'adv_state_' + btoa(originalUrl).substring(0, 20);
+            const clickState = sessionStorage.getItem(linkId);
 
-            // B. Buka LINK ASLI (Konten) di Tab Baru
-            let contentWindow = window.open(url, '_blank');
-
-            // Safety Check: Jika browser memblokir Link Asli karena ada 2 window.open sebelumnya
-            if (!contentWindow) {
-                // Jika konten terblokir, kita batalkan iklan kedua dan pakai tab ini untuk konten
-                window.location.href = url;
+            if (!clickState) {
+                // KLIK PERTAMA: Buka iklan kedua dan tandai di browser
+                try {
+                    window.open(ADS[1], '_blank');
+                } catch(e) {
+                    console.error("Popup blocker mungkin memblokir iklan 2:", e);
+                }
+                // Simpan "ingatan" di browser bahwa link ini sudah diklik sekali
+                sessionStorage.setItem(linkId, '1');
             } else {
-                // C. Jika Konten berhasil dibuka di tab baru,
-                // Maka Tab Lama ini kita ganti jadi Iklan KEDUA
-                window.location.href = ADS[1];
+                // KLIK KEDUA: Buka link asli dan hapus "ingatan"
+                sessionStorage.removeItem(linkId);
+
+                // Logika Pixeldrain asli tetap dipertahankan
+                let finalUrl = originalUrl;
+                if (finalUrl.includes('pixeldrain.com/api/file/')) {
+                    finalUrl = finalUrl.replace('/api/file/', '/u/');
+                }
+                if (finalUrl.includes('pixeldrain.com/api/file')) {
+                    document.getElementById('copyUrlInput').value = finalUrl;
+                    copyModal.show();
+                    return;
+                }
+
+                // Buka link asli
+                let contentWindow = window.open(finalUrl, '_blank');
+                if (!contentWindow) {
+                    // Fallback jika masih terblokir
+                    window.location.href = finalUrl;
+                }
             }
         }
 
+        // ==========================================================
+        // SISA FUNGSI BAWAAN (Tidak Perlu Diubah)
+        // ==========================================================
+        
         function doCopy() {
             const input = document.getElementById("copyUrlInput");
             input.select();
@@ -174,7 +200,6 @@
                 setTimeout(() => {
                     btn.innerHTML = 'Salin';
                     btn.style.backgroundColor = "#000";
-                    // Karena tidak pakai bootstrap, modalnya disembunyikan manual
                     document.getElementById('vanillaCopyModal').style.display = 'none';
                     window.location.href = ADS[Math.floor(Math.random() * ADS.length)];
                 }, 1500);
@@ -183,8 +208,6 @@
             }
         }
         
-        // ==========================================================
-
         async function init() {
             const id = window.location.pathname.split('/').filter(p => p).pop();
             
@@ -243,7 +266,6 @@
             }, 2000);
         }
 
-        // Anti Inspect
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
                 e.preventDefault();
