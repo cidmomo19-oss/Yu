@@ -3,35 +3,26 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // --- 1. API BUAT LINK ---
     if (request.method === "POST" && path === "/api/create") {
       const { content, password } = await request.json();
       if (!content) return new Response("Empty", { status: 400 });
-
       const id = Math.random().toString(36).substring(2, 8);
-      // BUAT KUNCI RAHASIA UNTUK AES (Disimpan aman di KV)
-      const secret = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
+      // Kunci AES unik tiap link, simpan di KV
+      const secret = Math.random().toString(36).substring(2, 15);
       await env.PASTE_DB.put(id, JSON.stringify({ content, password, secret }), { expirationTtl: 2592000 });
       return new Response(JSON.stringify({ id }), { headers: { "Content-Type": "application/json" } });
     }
 
-    // --- 2. API AMBIL LINK ---
     if (request.method === "GET" && path.startsWith("/api/get/")) {
       const id = path.split("/").pop();
       const data = await env.PASTE_DB.get(id);
       if (!data) return new Response("{}", { status: 404 });
-
-      return new Response(data, {
-        headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=2592000" }
-      });
+      return new Response(data, { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=2592000" } });
     }
 
-    // --- 3. ROUTING HTML ---
     let response = await env.ASSETS.fetch(request);
     if (response.status === 404) {
-      const indexUrl = new URL(url);
-      indexUrl.pathname = "/";
+      const indexUrl = new URL(url); indexUrl.pathname = "/";
       response = await env.ASSETS.fetch(indexUrl);
     }
     return response;
