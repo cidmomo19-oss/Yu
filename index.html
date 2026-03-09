@@ -19,17 +19,30 @@
         .captcha-btn {
             display: inline-flex; align-items: center; justify-content: flex-start;
             background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px;
-            border-radius: 3px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-size: 16px; color: #333; transition: all 0.2s; width: 280px; margin: 0 auto;
-        }
-        .captcha-btn:hover { border-color: #b0b0b0; background: #fff; }
-        .captcha-box {
-            width: 26px; height: 26px; border: 2px solid #c1c1c1; border-radius: 2px;
-            margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center;
-            box-sizing: border-box; transition: all 0.2s;
+            border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 16px; color: #333; width: 280px; margin: 0 auto;
         }
         
-        /* Tombol Lanjut (Disembunyikan awalnya) */
+        /* Box Captcha (Hanya ini yang bisa diklik) */
+        .captcha-box {
+            width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px;
+            margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center;
+            box-sizing: border-box; cursor: pointer; transition: all 0.2s;
+        }
+        .captcha-box:hover { border-color: #888; }
+        
+        /* Animasi Spinner Muter */
+        @keyframes spin-anim {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner-icon {
+            width: 18px; height: 18px; border: 3px solid #e0e0e0;
+            border-top: 3px solid #0056b3; border-radius: 50%;
+            animation: spin-anim 1s linear infinite;
+        }
+        
+        /* Tombol Lanjut (Sembunyi di awal) */
         #continue-btn {
             display: none; margin: 25px auto 0; background-color: #007bff; color: #fff;
             border: none; padding: 12px 30px; font-size: 16px; border-radius: 4px; 
@@ -59,13 +72,12 @@
             <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
             <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
             
-            <!-- Checkbox Robot -->
-            <div class="captcha-btn" id="captcha-wrap" onclick="verifyRobotClick()">
-                <div class="captcha-box" id="c-box"></div>
-                <span style="font-weight: 500;">I'm not a robot</span>
+            <div class="captcha-btn" id="captcha-wrap">
+                <!-- KLIK HANYA BERFUNGSI DI SINI -->
+                <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
+                <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
             </div>
 
-            <!-- Tombol Lanjut -->
             <button id="continue-btn" onclick="continueToContent()">Lanjut ke Halaman</button>
         </div>
 
@@ -84,7 +96,7 @@
     </div>
 
     <script>
-        // DAFTAR IKLAN
+        // DAFTAR IKLAN (Hanya 2 link asli milik Abang)
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
@@ -100,73 +112,77 @@
         }
 
         // ==========================================
-        // 1. SISTEM ROBOT (Tahap 1: Klik Checkbox)
+        // 1. SISTEM ROBOT (Tahap 1: Mulai Loading)
         // ==========================================
-        function verifyRobotClick() {
+        function verifyRobotClick(event) {
+            event.stopPropagation(); // Pastikan klik tidak merembet
             const path = window.location.pathname.split('/').filter(p => p).pop();
             
-            // Simpan state bahwa animasi sedang berjalan di sessionStorage
-            sessionStorage.setItem('robot_state_' + path, 'animating');
+            // Tandai sesi untuk tab duplikat
+            sessionStorage.setItem('robot_state_' + path, 'spinning');
             
-            // Buka tab duplikat (Tab Baru)
+            // Buka tab baru duluan biar tidak kena blokir browser (Popup Blocker)
+            // Di tab baru, animasi muter akan berjalan selama 1.5 detik
             const newTab = window.open(window.location.href, '_blank');
             
+            // Jalankan animasi muter di tab saat ini juga
+            showSpinnerVisual();
+            
             if (newTab) {
-                // Tab Lama (yg sedang dilihat ini) JADI IKLAN
-                window.location.href = getNextAd();
+                // Beri jeda 1.5 detik (menyesuaikan lama muter) baru ubah tab ini ke Iklan
+                setTimeout(() => {
+                    window.location.href = getNextAd();
+                }, 1500);
             } else {
-                // Jika kena popup blocker, jalankan animasi di tab ini saja
-                startCheckAnimation();
+                // Jika tab terblokir, jalankan full animasi di tab ini
+                setTimeout(() => {
+                    finishSpinnerAndShowContinue();
+                }, 1500);
             }
         }
 
-        // ==========================================
-        // 2. SISTEM ROBOT (Tahap 2: Proses Centang)
-        // ==========================================
-        function startCheckAnimation() {
+        // Fungsi Visual Spinner
+        function showSpinnerVisual() {
             const box = document.getElementById('c-box');
-            const wrap = document.getElementById('captcha-wrap');
-            
-            // Matikan klik supaya ga bisa diklik dobel
-            wrap.style.pointerEvents = 'none';
+            box.style.border = 'none';
+            box.style.backgroundColor = 'transparent';
+            box.innerHTML = '<div class="spinner-icon"></div>';
+            box.style.pointerEvents = 'none'; // Matikan klik biar ga diklik dobel
+        }
 
-            // Animasi Jeda 0.5 detik biar kerasa "Mikir"
-            setTimeout(() => {
-                box.style.borderColor = '#28a745';
-                box.style.backgroundColor = '#28a745';
-                box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-                
-                // Munculkan tombol Lanjut setelah animasi selesai
-                setTimeout(() => {
-                    document.getElementById('continue-btn').style.display = 'block';
-                }, 300);
-            }, 600);
+        // Fungsi Selesai Spinner & Muncul Centang
+        function finishSpinnerAndShowContinue() {
+            const box = document.getElementById('c-box');
+            box.style.border = '2px solid #28a745';
+            box.style.backgroundColor = '#28a745';
+            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            
+            document.getElementById('continue-btn').style.display = 'block';
         }
 
         // ==========================================
-        // 3. SISTEM ROBOT (Tahap 3: Klik Lanjut)
+        // 2. SISTEM ROBOT (Tahap 2: Klik Lanjut)
         // ==========================================
         function continueToContent() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
             
-            // Tandai lulus verifikasi selama 1 jam
+            // Lulus verifikasi, berlaku 1 jam
             localStorage.setItem('robot_pass_' + path, Date.now());
-            sessionStorage.removeItem('robot_state_' + path); // Hapus animasi state
+            sessionStorage.removeItem('robot_state_' + path); 
 
-            // Buka tab baru menuju konten
+            // Buka tab baru ke konten teks
             const contentTab = window.open(window.location.href, '_blank');
             
             if (contentTab) {
-                // Halaman captcha ini DIUBAH JADI IKLAN
+                // Halaman "Lanjut" ini DIUBAH JADI IKLAN
                 window.location.href = getNextAd();
             } else {
-                // Jika popup blocker, otomatis reload masuk konten di tab ini
                 window.location.reload();
             }
         }
 
         // ==========================================
-        // 4. SMART MASKING (Kode Acak)
+        // 3. SMART MASKING (Kode Acak)
         // ==========================================
         function universalMask(url) {
             try {
@@ -195,7 +211,7 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
 
-            _0xVault = [];
+            _0xVault =[];
             const processedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xVault.push(btoa(url)); 
                 let id = _0xVault.length - 1;
@@ -206,7 +222,7 @@
         }
 
         // ==========================================
-        // 5. JEBAKAN DI DALAM KONTEN (Klik Link)
+        // 4. JEBAKAN DI DALAM KONTEN (Klik Link)
         // ==========================================
         function handleAdSystem(id, event) {
             event.preventDefault();
@@ -230,7 +246,7 @@
         }
 
         // ==========================================
-        // 6. SISTEM INISIALISASI
+        // 5. SISTEM INISIALISASI
         // ==========================================
         async function init() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
@@ -251,9 +267,12 @@
                     // Tampilkan halaman verifikasi robot
                     document.getElementById('robot-mode').style.display = 'block';
                     
-                    if (robotState === 'animating') {
-                        // User baru saja duplikat tab ini, jalankan animasi langsung
-                        startCheckAnimation();
+                    if (robotState === 'spinning') {
+                        // Jika ada di tab duplikat, langsung jalankan animasi muter dan tunggu 1.5 detik
+                        showSpinnerVisual();
+                        setTimeout(() => {
+                            finishSpinnerAndShowContinue();
+                        }, 1500);
                     }
                 }
             } else {
