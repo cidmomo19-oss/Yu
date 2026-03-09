@@ -5,14 +5,16 @@ export default {
 
     // --- 1. API BUAT LINK (SIMPAN KE KV) --
     if (request.method === "POST" && path === "/api/create") {
-      const { content } = await request.json();
+      // PERBAIKAN: Ambil juga data 'password' dari frontend
+      const { content, password } = await request.json();
+      
       if (!content) return new Response("Empty", { status: 400 });
 
       // Bikin ID 6 Karakter Acak
       const id = Math.random().toString(36).substring(2, 8);
 
-      // Simpan di KV, otomatis kadaluarsa setelah 30 Hari (2592000 detik) biar KV lu gak penuh
-      await env.PASTE_DB.put(id, JSON.stringify({ content }), { expirationTtl: 2592000 });
+      // PERBAIKAN: Simpan 'content' DAN 'password' ke dalam KV Database
+      await env.PASTE_DB.put(id, JSON.stringify({ content, password }), { expirationTtl: 2592000 });
 
       return new Response(JSON.stringify({ id }), { headers: { "Content-Type": "application/json" } });
     }
@@ -25,7 +27,6 @@ export default {
       if (!data) return new Response("{}", { status: 404 });
 
       // SULAP CACHE: Data disimpan di server Cloudflare (Edge) selama 30 Hari!
-      // Trafik 1 juta klik = Cuma 1 request KV. Sisa 999.999 klik = GRATIS.
       return new Response(data, {
         headers: {
           "Content-Type": "application/json",
