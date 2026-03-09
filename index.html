@@ -30,9 +30,6 @@
         .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
 
-        #loading-mode .progress-bar { width: 80%; margin: 20px auto; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
-        #loading-mode #progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 2.5s ease-in-out; }
-
         #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
@@ -76,18 +73,10 @@
             </div>
         </div>
         
-        <!-- 4. HALAMAN LOADING (BARU) -->
-        <div id="loading-mode" style="display: none; padding-top: 50px;">
-            <svg viewBox="0 0 24 24" width="70" height="70" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
-            <h2 style="margin-top: 10px; font-weight: 600;">Menyiapkan Konten Anda</h2>
-            <p style="color: #666;">Mohon tunggu sebentar...</p>
-            <div class="progress-bar"><div id="progress-fill"></div></div>
-        </div>
-
-        <!-- 5. HALAMAN VIEW KONTEN -->
+        <!-- 4. HALAMAN VIEW KONTEN -->
         <div id="view-mode" style="display: none;"></div>
 
-        <!-- 6. HALAMAN LANJUTKAN (BARU) -->
+        <!-- 5. HALAMAN LANJUTKAN -->
         <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
              <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
             <h2 style="margin-top: 10px; font-weight: 600;">Link Anda Siap</h2>
@@ -112,7 +101,7 @@
         }
 
         function hideAllModes() {
-            ['create-mode', 'robot-mode', 'password-mode', 'loading-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
+            ['create-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
                 document.getElementById(id).style.display = 'none';
             });
         }
@@ -141,20 +130,8 @@
                 document.getElementById('password-mode').style.display = 'block';
                 return;
             }
-
-            // 3. Jebakan Halaman Loading
-            if (!sessionStorage.getItem('loading_shown_' + id)) {
-                document.getElementById('loading-mode').style.display = 'block';
-                setTimeout(() => { document.getElementById('progress-fill').style.width = '100%'; }, 100);
-                setTimeout(() => {
-                    sessionStorage.setItem('loading_shown_' + id, 'true');
-                    const contentTab = window.open(window.location.href, '_blank');
-                    if (contentTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
-                }, 2800);
-                return;
-            }
             
-            // 4. Lolos Semua
+            // 3. Lolos Semua -> LANGSUNG Tampilkan Konten
             renderText(_pageData.content);
         }
 
@@ -272,8 +249,9 @@
             if (id && id !== 'index.html' && id !== 'lanjutkan') {
                 try {
                     const res = await fetch('/api/get/' + id);
+                    if (!res.ok) throw new Error("Not found");
                     _pageData = await res.json();
-                    if(!_pageData.content) throw new Error("Not found");
+                    if(!_pageData.content) throw new Error("Content empty");
                     runProgressionChecks(id);
                 } catch (e) {
                     hideAllModes(); document.getElementById('create-mode').style.display = 'block';
