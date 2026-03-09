@@ -5,162 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
         textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        textarea { height: 300px; resize: none; }
+        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
+        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-
-        /* === GAYA UNTUK PLAYER PALSU === */
-        .fake-player-wrapper {
-            margin: 20px 0;
-        }
-        .fake-player {
-            position: relative; /* Kunci agar overlay bisa diposisikan */
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background-color: #000;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .fake-play-button {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70px;
-            height: 70px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 50%;
-            border: 2px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        /* Gambar segitiga 'play' */
-        .fake-play-button::after {
-            content: '';
-            display: block;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 15px 0 15px 26px;
-            border-color: transparent transparent transparent white;
-            margin-left: 5px;
-        }
-        .ad-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10; /* Pastikan di lapisan paling atas */
-            cursor: pointer;
-            /* Dibuat tidak terlihat */
-            opacity: 0; 
-        }
-        .link-caption {
-            font-size: 13px;
-            color: #555;
-            word-break: break-all;
-            margin-top: 5px;
-        }
+        .no-select { -webkit-user-select: none; user-select: none; }
     </style>
 </head>
-<body>
+<body class="no-select" oncontextmenu="return false">
 
     <div class="container">
+        <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
-             <textarea id="input-text" placeholder="Masukkan teks dan link..."></textarea>
-             <button onclick="generateLink()">Buat Link</button>
+            <textarea id="input-text" placeholder="Masukkan teks..."></textarea>
+            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <div id="result-box" style="display: none; margin-top: 20px;">
+                <input type="text" id="result-url" readonly style="width: 70%;">
+                <button onclick="copyLink()">Salin</button>
+            </div>
         </div>
-        <div id="view-mode" style="display: block;"></div>
+
+        <!-- MODE BACA PESAN -->
+        <div id="view-mode" style="display: none;"></div>
     </div>
-    
+
     <script>
+        // --- KONFIGURASI IKLAN ---
         const ADS = [
-            // IKLAN UNTUK TAB BARU (Pop)
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
-            // IKLAN UNTUK REDIRECT (Tab saat ini)
-            "https://omg10.com/4/10390860"
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", // Iklan 1 (Tab Baru)
+            "https://omg10.com/4/10390860" // Iklan 2 (Redirect Jembatan)
         ];
+
         let _0xStore = [];
+
+        // --- LOGIKA HALAMAN JEMBATAN (BLOB) ---
+        // Kita bikin HTML jembatan di dalam variabel agar tidak perlu file tambahan
+        const bridgeHTML = `
+            <html>
+            <head><title>Loading...</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+            <body onclick="go()" style="margin:0;height:100vh;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;font-family:sans-serif;">
+                <div style="text-align:center;">
+                    <div style="border:4px solid #f3f3f3;border-top:4px solid #000;border-radius:50%;width:30px;height:30px;animation:s 1s linear infinite;margin:0 auto 10px;"></div>
+                    <p style="color:#666;font-size:14px;">Klik di mana saja untuk melanjutkan...</p>
+                </div>
+                <style>@keyframes s { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }</style>
+                <script>
+                    function go() {
+                        localStorage.setItem('bridge_clicked', 'true');
+                        window.open('${ADS[0]}', '_blank');
+                        setTimeout(() => { window.location.href = '${ADS[1]}'; }, 100);
+                    }
+                <\/script>
+            </body>
+            </html>
+        `;
+        const bridgeBlob = new Blob([bridgeHTML], { type: 'text/html' });
+        const bridgeUrl = URL.createObjectURL(bridgeBlob);
+
+        // --- LOGIKA UTAMA ---
+
+        function handleLinkClick(index, event) {
+            event.preventDefault();
+            const item = _0xStore[index];
+            const originalUrl = atob(item.u);
+            const linkId = 'state_' + btoa(originalUrl).substring(0, 15);
+
+            // Cek apakah iklan sudah diklik (menggunakan localStorage supaya sinkron antar tab)
+            if (localStorage.getItem(linkId) === 'done') {
+                // KLIK KEDUA: Buka link asli
+                openFinalLink(originalUrl);
+                localStorage.removeItem(linkId); // Reset biar bisa cuan lagi nanti
+            } else {
+                // KLIK PERTAMA: Buka Tab Jembatan
+                localStorage.setItem(linkId, 'done'); // Tandai link ini sudah dipicu
+                window.open(bridgeUrl, '_blank');
+            }
+        }
+
+        function openFinalLink(url) {
+            if (url.includes('pixeldrain.com/api/file/')) {
+                url = url.replace('/api/file/', '/u/');
+            }
+            window.open(url, '_blank');
+        }
+
+        // --- FUNGSI STANDAR ---
 
         function showViewMode(text) {
             document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             _0xStore = [];
-
-            // Ubah text biasa menjadi player palsu untuk setiap link
-            const contentWithPlayers = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xStore.push({ u: btoa(url) });
-                let currentIndex = _0xStore.length - 1;
-                
-                // Membuat HTML untuk player palsu dengan overlay
-                return `
-                    </div> <!-- Menutup div teks sebelumnya -->
-                    <div class="fake-player-wrapper">
-                        <div class="fake-player" id="player-${currentIndex}">
-                            <div class="fake-play-button"></div>
-                            <!-- INILAH JEBAKANNYA -->
-                            <div class="ad-overlay" onclick="triggerAds(${currentIndex}, event)"></div>
-                        </div>
-                        <div class="link-caption">${url}</div>
-                    </div>
-                    <div> <!-- Membuka div baru untuk teks lanjutan -->
-                `;
+                return `<span class="link-blue" onclick="handleLinkClick(${_0xStore.length-1}, event)">${url}</span>`;
             });
-
-            // Bungkus semuanya dalam div agar formatnya benar
-            viewDiv.innerHTML = `<div>${contentWithPlayers}</div>`;
         }
 
-        function triggerAds(index, event) {
-            event.preventDefault();
-            event.stopPropagation(); // Hentikan event agar tidak merembet
-
-            const item = _0xStore[index];
-            if (!item) return;
-
-            const originalUrl = atob(item.u);
-            const linkId = 'adv_click_state_' + btoa(originalUrl);
-            const adShown = sessionStorage.getItem(linkId);
-
-            const overlay = event.currentTarget;
-
-            if (!adShown) {
-                // --- KLIK PERTAMA ---
-                sessionStorage.setItem(linkId, 'true');
-
-                // Sembunyikan overlay agar tidak bisa diklik dua kali
-                overlay.style.display = 'none';
-
-                // 1. Buka Tab Baru (Pop)
-                try { window.open(ADS[0], '_blank'); } catch (e) {}
-                
-                // 2. Redirect Tab Saat Ini
-                window.location.href = ADS[1];
-                
-            } else {
-                // --- KLIK KEDUA (setelah user kembali) ---
-                sessionStorage.removeItem(linkId);
-                
-                // Langsung buka link asli
-                const contentWindow = window.open(originalUrl, '_blank');
-                if (!contentWindow) {
-                    window.location.href = originalUrl;
-                }
-            }
+        async function init() {
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            if (id && id !== 'index.html') {
+                try {
+                    const res = await fetch('/api/get/' + id);
+                    const data = await res.json();
+                    showViewMode(data.content);
+                } catch (e) { document.getElementById('create-mode').style.display = 'block'; }
+            } else { document.getElementById('create-mode').style.display = 'block'; }
         }
-        
-        // Contoh Penggunaan (Bisa dihapus jika sudah konek ke API)
-        showViewMode("Ini adalah contoh teks dengan link video di bawah.\n\nKlik tombol play untuk melihat: https://contoh.com/video123 \n\nDan ini adalah link lainnya: https://situslain.net/filexyz");
-        
-        // Sisa fungsi lain (generateLink, dll) bisa ditaruh di sini...
 
+        async function generateLink() {
+            const text = document.getElementById('input-text').value;
+            if (!text) return;
+            const res = await fetch('/api/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: text }) });
+            const data = await res.json();
+            document.getElementById('result-url').value = window.location.origin + '/' + data.id;
+            document.getElementById('result-box').style.display = 'block';
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("result-url");
+            copyText.select();
+            document.execCommand("copy");
+        }
+
+        init();
     </script>
 </body>
 </html>
