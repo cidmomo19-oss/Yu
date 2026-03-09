@@ -3,174 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Content Viewer</title>
+    <title>Secure Viewer</title>
     <!-- Library Enkripsi AES -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
-        .container { max-width: 600px; margin: 0 auto; text-align: center; }
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
-        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; font-size: 16px; color: #333; width: 280px; margin: 0 auto; }
-        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
+        .container { max-width: 500px; margin: 0 auto; text-align: center; }
+        
+        textarea, input { width: 100%; box-sizing: border-box; padding: 14px; font-size: 15px; border: 1px solid #ddd; border-radius: 6px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
+        input:focus { border-color: #007bff; }
+        textarea { height: 250px; resize: none; }
+        
+        button { background-color: #000; color: #fff; border: none; padding: 14px 24px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
+        button:hover { background-color: #333; }
+        
+        /* Link Polosan Biru */
+        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; border: none; }
+        .link-blue:hover { color: #ff0000; }
+
+        /* Captcha Box Profesional */
+        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 16px; color: #333; width: 280px; margin: 20px auto; }
+        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        
+        /* Spinner Animasi */
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner { width: 18px; height: 18px; border: 3px solid #e0e0e0; border-top: 3px solid #0056b3; border-radius: 50%; animation: spin 1s linear infinite; }
-        #continue-btn { display: none; margin: 25px auto 0; background-color: #007bff; color: #fff; width: auto; }
-        .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; }
-        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        
+        #continue-btn, #lanjutkan-btn { display: none; margin-top: 20px; background-color: #007bff; width: auto; padding: 12px 40px; }
+
+        .pwd-card { padding: 30px; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .error { color: #dc3545; font-size: 14px; margin-bottom: 10px; display: none; }
+
+        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.7; display: none; }
         .no-select { -webkit-user-select: none; user-select: none; }
     </style>
 </head>
 <body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        <!-- 1. MODE BUAT LINK -->
+        
+        <!-- 1. CREATE MODE -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Teks & Link Asli..."></textarea>
+            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
             <input type="text" id="input-password" placeholder="Password (Opsional)" autocomplete="off">
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <button onclick="generateLink()" id="btn-submit">Buat Link Terenkripsi</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
+                <button onclick="copyLink()" id="btn-copy">Salin Link</button>
             </div>
         </div>
 
-        <!-- 2. HALAMAN ROBOT -->
+        <!-- 2. ROBOT MODE -->
         <div id="robot-mode" style="display: none;">
-            <h2 style="font-weight: 600;">Security Check</h2>
+            <svg viewBox="0 0 24 24" width="70" height="70" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                <rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2M20 14h2M15 13v2M9 13v2M12 8V5"></path><circle cx="12" cy="3" r="2"></circle>
+            </svg>
+            <h2 style="font-weight: 600; margin: 0;">Security Check</h2>
+            <p style="color: #666; font-size: 14px;">Verifikasi identitas Anda untuk melanjutkan.</p>
             <div class="captcha-btn">
-                <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
-                <span>I'm not a robot</span>
+                <div class="captcha-box" id="c-box" onclick="verifyRobot(event)"></div>
+                <span style="font-weight: 500;">I'm not a robot</span>
             </div>
-            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut</button>
+            <button id="continue-btn" onclick="goNext()">Lanjut ke Halaman</button>
         </div>
 
-        <!-- 3. HALAMAN PASSWORD -->
+        <!-- 3. PASSWORD MODE -->
         <div id="password-mode" style="display: none;">
-            <div class="pwd-container">
-                <h2 style="font-weight: 600;">Halaman Terkunci</h2>
-                <input type="text" id="pwd-input" placeholder="Masukkan password..." autocomplete="off" onfocus="handlePwdClick()">
-                <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
+            <div class="pwd-card">
+                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <h2 style="font-weight: 600; margin-top: 0;">Password Required</h2>
+                <input type="text" id="pwd-input" placeholder="Ketik password..." autocomplete="off" onfocus="handlePwdFocus()">
+                <p id="pwd-error" class="error">Password salah!</p>
+                <button onclick="submitPwd()" style="width: auto; padding: 10px 40px;">Buka Konten</button>
             </div>
         </div>
-        
-        <!-- 4. MODE VIEW KONTEN -->
-        <div id="view-mode" style="display: none;"></div>
 
-        <!-- 5. HALAMAN LANJUTKAN (AES SECURED) -->
-        <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
-            <h2 style="font-weight: 600;">Link Anda Siap</h2>
-            <p style="color: #666; margin-bottom: 30px;">Klik tombol di bawah untuk membuka link asli.</p>
-            <button id="lanjutkan-btn" onclick="openFinalLink()" style="width: auto; padding: 12px 40px; background-color: #28a745;">Lanjutkan</button>
+        <!-- 4. VIEW MODE -->
+        <div id="view-mode"></div>
+
+        <!-- 5. LANJUTKAN MODE (AES DECRYPT) -->
+        <div id="lanjutkan-mode" style="display: none; padding-top: 40px;">
+            <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path>
+            </svg>
+            <h2 style="font-weight: 600;">Link Siap Dibuka</h2>
+            <p style="color: #666;">Klik tombol di bawah untuk mendapatkan link asli Anda.</p>
+            <button id="lanjutkan-btn" style="display: inline-block; background-color: #28a745;" onclick="finalDecrypt()">Lanjutkan</button>
         </div>
+
     </div>
 
     <script>
-        const ADS =["https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9","https://omg10.com/4/10390860"];
-        let _0xVault =[]; let _pageData = null; let _currentId = null;
+        const ADS = ["https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", "https://omg10.com/4/10390860"];
+        let _pageData = null; let _vault = []; let _curId = "";
 
-        function getNextAd() {
-            let ptr = parseInt(localStorage.getItem('_ad_ptr') || '0');
-            let ad = ADS[ptr % ADS.length];
-            localStorage.setItem('_ad_ptr', ptr + 1);
-            return ad;
+        function getAd() {
+            let p = parseInt(localStorage.getItem('_ad_p') || '0');
+            let a = ADS[p % ADS.length];
+            localStorage.setItem('_ad_p', p + 1);
+            return a;
         }
 
-        function hideAll() {
-            ['create-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => document.getElementById(id).style.display = 'none');
-        }
+        function hide() { ['create-mode','robot-mode','password-mode','view-mode','lanjutkan-mode'].forEach(i => document.getElementById(i).style.display='none'); }
 
-        // --- SISTEM ROBOT & PASSWORD ---
-        function verifyRobotClick(e) {
-            sessionStorage.setItem('robot_state_' + _currentId, 'spinning');
-            const newTab = window.open(window.location.href, '_blank');
+        // --- ROBOT LOGIC ---
+        function verifyRobot(e) {
+            sessionStorage.setItem('r_s_'+_curId, 'spin');
+            const nt = window.open(window.location.href, '_blank');
             document.getElementById('c-box').innerHTML = '<div class="spinner"></div>';
-            if (newTab) setTimeout(() => window.location.href = getNextAd(), 1500);
-            else setTimeout(finishRobot, 1500);
+            if(nt) setTimeout(() => window.location.href = getAd(), 1500);
+            else setTimeout(doneRobot, 1500);
         }
-
-        function finishRobot() {
-            const box = document.getElementById('c-box');
-            box.style.backgroundColor = '#28a745'; box.style.borderColor = '#28a745';
-            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" style="width:16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        function doneRobot() {
+            const b = document.getElementById('c-box');
+            b.style.background = '#28a745'; b.style.borderColor = '#28a745';
+            b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" style="width:16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
             document.getElementById('continue-btn').style.display = 'block';
         }
-
-        function continueToNextPhase() {
-            localStorage.setItem('robot_pass_' + _currentId, Date.now());
-            const nextTab = window.open(window.location.href, '_blank');
-            if (nextTab) window.location.href = getNextAd(); else window.location.reload();
+        function goNext() {
+            localStorage.setItem('r_p_'+_curId, Date.now());
+            const nt = window.open(window.location.href, '_blank');
+            if(nt) window.location.href = getAd(); else window.location.reload();
         }
 
-        function handlePwdClick() {
-            if (!sessionStorage.getItem('pwd_cl_' + _currentId)) {
-                sessionStorage.setItem('pwd_cl_' + _currentId, 't');
+        // --- PASSWORD LOGIC ---
+        function handlePwdFocus() {
+            if(!sessionStorage.getItem('p_f_'+_curId)) {
+                sessionStorage.setItem('p_f_'+_curId, '1');
                 const nt = window.open(window.location.href, '_blank');
-                if (nt) window.location.href = getNextAd();
+                if(nt) window.location.href = getAd();
             }
         }
-
-        function submitPassword() {
-            if (document.getElementById('pwd-input').value === _pageData.password) {
-                localStorage.setItem('pwd_pass_' + _currentId, _pageData.password);
+        function submitPwd() {
+            if(document.getElementById('pwd-input').value === _pageData.password) {
+                localStorage.setItem('p_p_'+_curId, _pageData.password);
                 const nt = window.open(window.location.href, '_blank');
-                if (nt) window.location.href = getNextAd(); else window.location.reload();
-            } else { alert("Salah!"); }
+                if(nt) window.location.href = getAd(); else window.location.reload();
+            } else { document.getElementById('pwd-error').style.display='block'; }
         }
 
-        // --- SISTEM AES MASKING ---
-        function mask(url) {
+        // --- MASKING & AES ---
+        function mask(u) {
             try {
-                let u = new URL(url);
-                let np = u.pathname.split('/').map(p => (p.length > 5 && /[0-9]/.test(p)) ? Math.random().toString(36).substring(2,10) : p).join('/');
-                return u.origin + np + (u.search ? '?' + Math.random().toString(36).substring(2,8) : '');
-            } catch(e) { return url; }
+                let url = new URL(u);
+                let p = url.pathname.split('/').map(x => (x.length > 5 && /[0-9]/.test(x)) ? Math.random().toString(36).substring(2,10) : x).join('/');
+                return url.origin + p + (url.search ? '?ref=' + Math.random().toString(36).substring(2,8) : '');
+            } catch(e) { return u; }
         }
 
-        function renderText(text) {
-            const div = document.getElementById('view-mode'); div.style.display = 'block';
-            div.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                _0xVault.push(url);
-                return `<span class="link-blue" onclick="handleLinkClick(${_0xVault.length-1}, event)">${mask(url)}</span>`;
+        function render(text) {
+            const v = document.getElementById('view-mode'); v.style.display = 'block';
+            v.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, u => {
+                _vault.push(u);
+                return `<span class="link-blue" onclick="clickLink(${_vault.length-1}, event)">${mask(u)}</span>`;
             });
         }
 
-        function handleLinkClick(idx, e) {
-            e.preventDefault();
-            const real = _0xVault[idx];
-            const token = 'cl_' + btoa(real).substring(0,10);
-            if (!sessionStorage.getItem(token)) {
-                sessionStorage.setItem(token, 's2');
-                const ad = window.open(getNextAd(), '_blank');
-                if (ad) { ad.blur(); window.focus(); }
-                setTimeout(() => window.location.href = getNextAd(), 150);
+        function clickLink(idx, e) {
+            const real = _vault[idx];
+            const token = 'c_l_' + btoa(real).substring(0,10);
+            if(!sessionStorage.getItem(token)) {
+                sessionStorage.setItem(token, '1');
+                const ad = window.open(getAd(), '_blank');
+                if(ad) { ad.blur(); window.focus(); }
+                setTimeout(() => window.location.href = getAd(), 150);
             } else {
                 sessionStorage.removeItem(token);
-                // ENKRIPSI LINK PAKAI AES SEBELUM DIKIRIM KE HALAMAN LANJUTKAN
+                // ENKRIPSI AES
                 const encrypted = CryptoJS.AES.encrypt(real, _pageData.secret).toString();
-                const contUrl = `${window.location.origin}/lanjutkan?id=${_currentId}#${encodeURIComponent(encrypted)}`;
-                const nt = window.open(contUrl, '_blank');
-                if (nt) window.location.href = getNextAd(); else window.location.href = contUrl;
+                const target = `${window.location.origin}/lanjutkan?id=${_curId}#${encodeURIComponent(encrypted)}`;
+                const nt = window.open(target, '_blank');
+                if(nt) window.location.href = getAd(); else window.location.href = target;
             }
         }
 
-        // --- HALAMAN LANJUTKAN (FINAL DECRYPT) ---
-        async function openFinalLink() {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            const encryptedData = decodeURIComponent(window.location.hash.substring(1));
-            
+        // --- FINAL DECRYPT ---
+        async function finalDecrypt() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            const dataEnc = decodeURIComponent(window.location.hash.substring(1));
             try {
                 const res = await fetch('/api/get/' + id);
-                const data = await res.json();
-                // DEKRIPSI PAKAI KUNCI DARI DATABASE (Safe Place)
-                const bytes = CryptoJS.AES.decrypt(encryptedData, data.secret);
-                const originalUrl = bytes.toString(CryptoJS.enc.Utf8);
-                
-                if (originalUrl) {
-                    window.open(originalUrl, '_blank');
-                    window.location.href = getNextAd();
+                const db = await res.json();
+                const bytes = CryptoJS.AES.decrypt(dataEnc, db.secret);
+                const original = bytes.toString(CryptoJS.enc.Utf8);
+                if(original) {
+                    window.open(original, '_blank');
+                    window.location.href = getAd();
                 }
             } catch(e) { alert("Error!"); }
         }
@@ -178,41 +198,41 @@
         // --- INIT ---
         async function init() {
             const path = window.location.pathname;
-            if (path.startsWith('/lanjutkan')) {
-                hideAll(); document.getElementById('continue-to-link-mode').style.display = 'block';
+            if(path.startsWith('/lanjutkan')) {
+                hide(); document.getElementById('lanjutkan-mode').style.display = 'block';
                 return;
             }
-            _currentId = path.split('/').filter(p => p).pop();
-            if (_currentId && _currentId !== 'index.html') {
+            _curId = path.split('/').filter(x => x).pop();
+            if(_curId && _curId !== 'index.html') {
                 try {
-                    const res = await fetch('/api/get/' + _currentId);
+                    const res = await fetch('/api/get/' + _curId);
                     _pageData = await res.json();
-                    hideAll();
-                    const rPass = localStorage.getItem('robot_pass_' + _currentId);
-                    if (!rPass || (Date.now() - rPass > 3600000)) {
+                    hide();
+                    const rP = localStorage.getItem('r_p_'+_curId);
+                    if(!rP || (Date.now() - rP > 3600000)) {
                         document.getElementById('robot-mode').style.display = 'block';
-                        if (sessionStorage.getItem('robot_state_' + _currentId) === 'spinning') finishRobot();
-                    } else if (_pageData.password && localStorage.getItem('pwd_pass_' + _currentId) !== _pageData.password) {
+                        if(sessionStorage.getItem('r_s_'+_curId) === 'spin') doneRobot();
+                    } else if(_pageData.password && localStorage.getItem('p_p_'+_curId) !== _pageData.password) {
                         document.getElementById('password-mode').style.display = 'block';
-                    } else { renderText(_pageData.content); }
-                } catch(e) { hideAll(); document.getElementById('create-mode').style.display = 'block'; }
-            } else { hideAll(); document.getElementById('create-mode').style.display = 'block'; }
+                    } else { render(_pageData.content); }
+                } catch(e) { hide(); document.getElementById('create-mode').style.display = 'block'; }
+            } else { hide(); document.getElementById('create-mode').style.display = 'block'; }
         }
 
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             const pwd = document.getElementById('input-password').value;
-            if (!text) return;
+            if(!text) return;
             const res = await fetch('/api/create', { method: 'POST', body: JSON.stringify({ content: text, password: pwd }) });
-            const data = await res.json();
-            document.getElementById('result-url').value = window.location.origin + '/' + data.id;
+            const d = await res.json();
+            document.getElementById('result-url').value = window.location.origin + '/' + d.id;
             document.getElementById('result-box').style.display = 'block';
         }
 
         function copyLink() {
-            const input = document.getElementById('result-url');
-            input.select(); document.execCommand('copy');
-            alert("Tersalin!");
+            const i = document.getElementById('result-url'); i.select(); document.execCommand('copy');
+            const b = document.getElementById('btn-copy'); b.innerText = "Tersalin!";
+            setTimeout(() => b.innerText = "Salin Link", 2000);
         }
 
         init();
