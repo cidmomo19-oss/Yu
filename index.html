@@ -51,8 +51,10 @@
 
     <script>
         const ADS = [
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
-            "https://omg10.com/4/10390860"
+            // IKLAN UNTUK TAB BARU (Pop)
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
+            // IKLAN UNTUK REDIRECT (Tab saat ini)
+            "https://omg10.com/4/10390860" 
         ];
         let _0xStore = [];
         const copyModal = { show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; } };
@@ -65,16 +67,16 @@
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xStore.push({ u: btoa(url) });
                 let currentIndex = _0xStore.length - 1;
-                // IMPLEMENTASI BARU: Cukup pakai satu event 'onclick'
-                return `<span class="link-blue" onclick="handleManipulatedClick(${currentIndex}, event)">${url}</span>`;
+                // Cukup satu 'onclick', simpel dan mematikan
+                return `<span class="link-blue" onclick="handleTheRealClick(${currentIndex}, event)">${url}</span>`;
             });
             viewDiv.innerHTML = linkedText;
         }
 
         // ==========================================================
-        // FUNGSI MANIPULASI KLIK
+        // FUNGSI KOMBINASI MAUT: POPUP + REDIRECT
         // ==========================================================
-        function handleManipulatedClick(index, event) {
+        function handleTheRealClick(index, event) {
             event.preventDefault();
             const item = _0xStore[index];
             if (!item) return;
@@ -84,29 +86,19 @@
             const adShown = sessionStorage.getItem(linkId);
 
             if (!adShown) {
-                // --- KLIK PERTAMA: Eksekusi Manipulasi ---
-
-                // 1. Buka Iklan Pertama secara langsung (hasil dari klik nyata)
-                try { window.open(ADS[0], '_blank'); } catch(e) {}
-                
-                // 2. Buat 'Link Hantu' untuk Iklan Kedua
-                const ghostLink = document.createElement('a');
-                ghostLink.href = ADS[1];
-                ghostLink.target = '_blank';
-                ghostLink.style.display = 'none'; // Pastikan tidak terlihat
-                document.body.appendChild(ghostLink);
-
-                // 3. Picu "Klik Hantu" secara otomatis
-                ghostLink.click();
-
-                // 4. Bersihkan 'Link Hantu' dari halaman setelah tugasnya selesai
-                document.body.removeChild(ghostLink);
-                
-                // 5. Tandai bahwa iklan sudah pernah muncul untuk link ini
+                // --- KLIK PERTAMA: Eksekusi 2 Iklan ---
                 sessionStorage.setItem(linkId, 'true');
 
+                // 1. TEMBAK IKLAN PERTAMA DI TAB BARU
+                // Ini diizinkan karena hasil dari klik user langsung
+                try { window.open(ADS[0], '_blank'); } catch (e) {}
+                
+                // 2. TEMBAK IKLAN KEDUA DENGAN PINDAH HALAMAN (REDIRECT)
+                // Ini 100% legal dan tidak akan diblokir
+                window.location.href = ADS[1];
+                
             } else {
-                // --- KLIK KEDUA: Buka Link Asli ---
+                // --- KLIK KEDUA (setelah user tekan 'Back'): Buka Link Asli ---
                 sessionStorage.removeItem(linkId);
                 
                 let finalUrl = originalUrl;
