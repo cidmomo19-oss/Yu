@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Viewer Verification</title>
+    <title>Security Verification</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -23,18 +23,23 @@
         }
         .link-blue:hover { color: #ff0000; text-decoration: none; }
 
-        /* Style Captcha / Robot */
-        .captcha-btn {
-            display: inline-flex; align-items: center; justify-content: flex-start;
-            background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px;
-            border-radius: 3px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-size: 16px; color: #333; transition: all 0.2s; width: 280px; margin: 0 auto;
+        /* Tombol Robot Baru */
+        .robot-button {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 16px 30px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 280px;
+            max-width: 100%;
+            transition: all 0.2s;
         }
-        .captcha-btn:hover { border-color: #b0b0b0; background: #fff; }
-        .captcha-box {
-            width: 26px; height: 26px; border: 2px solid #c1c1c1; border-radius: 2px;
-            margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center;
-            box-sizing: border-box; transition: all 0.2s;
+        .robot-button:disabled {
+            background-color: #555555;
+            cursor: not-allowed;
         }
 
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -60,10 +65,8 @@
             <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
             <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
             
-            <div class="captcha-btn" onclick="verifyRobot()">
-                <div class="captcha-box" id="c-box"></div>
-                <span style="font-weight: 500;">I'm not a robot</span>
-            </div>
+            <!-- Tombol Polos sesuai request -->
+            <button id="btn-robot" class="robot-button" onclick="verifyRobot()">I'm not a robot</button>
         </div>
 
         <!-- MODE VIEW KONTEN -->
@@ -81,7 +84,7 @@
     </div>
 
     <script>
-        // DAFTAR IKLAN (Cuma 2 sesuai aslinya)
+        // DAFTAR IKLAN (Hanya 2 iklan asli)
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
@@ -89,7 +92,7 @@
 
         let _0xVault =[]; 
 
-        // Mengambil iklan urut bergantian 1 dan 2
+        // Mengambil iklan urut bergantian
         function getNextAd() {
             let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
             let ad = ADS[ptr % ADS.length];
@@ -98,16 +101,15 @@
         }
 
         // ==========================================
-        // 1. SISTEM ROBOT CAPTCHA
+        // 1. SISTEM ROBOT BUTTON (TANPA CEKLIS)
         // ==========================================
         function verifyRobot() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
-            const box = document.getElementById('c-box');
+            const btn = document.getElementById('btn-robot');
             
-            // Animasi ceklis hijau
-            box.style.borderColor = '#28a745';
-            box.style.backgroundColor = '#28a745';
-            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            // Efek loading simpel
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
             
             setTimeout(() => {
                 // Simpan status bahwa user sudah lolos robot (berlaku 1 jam)
@@ -117,13 +119,13 @@
                 const newTab = window.open(window.location.href, '_blank');
                 
                 if (newTab) {
-                    // Jika tab baru berhasil terbuka, TAB LAMA JADI IKLAN
+                    // TAB LAMA JADI IKLAN
                     window.location.href = getNextAd();
                 } else {
-                    // Jika kena popup blocker browser, reload saja agar pindah ke halaman konten
+                    // Jika kena popup blocker, reload biar kebuka konten
                     window.location.reload();
                 }
-            }, 600); // Jeda 0.6 detik biar animasinya keliatan
+            }, 600); // Jeda 0.6 detik
         }
 
         // ==========================================
@@ -156,7 +158,7 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
 
-            _0xVault = [];
+            _0xVault =[];
             const processedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xVault.push(btoa(url)); 
                 let id = _0xVault.length - 1;
@@ -167,7 +169,7 @@
         }
 
         // ==========================================
-        // 3. LOGIKA IKLAN AGRESIF
+        // 3. LOGIKA IKLAN AGRESIF PADA LINK
         // ==========================================
         function handleAdSystem(id, event) {
             event.preventDefault();
