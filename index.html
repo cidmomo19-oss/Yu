@@ -17,10 +17,19 @@
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { color: #ff0000; }
 
-        /* Style Robot & Lanjutkan */
-        .captcha-box, #continue-btn, #lanjutkan-btn { cursor: pointer; }
+        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 16px; color: #333; width: 280px; margin: 0 auto; }
+        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; transition: all 0.2s; }
+        .captcha-box:hover { border-color: #888; }
         
-        /* Halaman Loading Progress Bar */
+        @keyframes spin-anim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner-icon { width: 18px; height: 18px; border: 3px solid #e0e0e0; border-top: 3px solid #0056b3; border-radius: 50%; animation: spin-anim 1s linear infinite; }
+        
+        #continue-btn { display: none; margin: 25px auto 0; background-color: #007bff; color: #fff; width: auto; }
+        #continue-btn:hover { background-color: #0056b3; }
+
+        .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
+
         #loading-mode .progress-bar { width: 80%; margin: 20px auto; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
         #loading-mode #progress-fill { width: 0%; height: 100%; background-color: #007bff; transition: width 2.5s ease-in-out; }
 
@@ -35,7 +44,7 @@
         <!-- 1. MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <input type="text" id="input-password" placeholder="Password (Opsional)" autocomplete="off">
+            <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
@@ -43,15 +52,33 @@
             </div>
         </div>
 
-        <!-- 2. HALAMAN ROBOT -->
-        <div id="robot-mode" style="display: none;"> (Desain Robot dari kode sebelumnya) ... </div>
+        <!-- 2. HALAMAN VERIFIKASI ROBOT -->
+        <div id="robot-mode" style="display: none;">
+            <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 8V5"></path><circle cx="12" cy="3" r="2"></circle></svg>
+            <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
+            <div class="captcha-btn" id="captcha-wrap">
+                <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
+                <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
+            </div>
+            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut ke Halaman</button>
+        </div>
 
         <!-- 3. HALAMAN PASSWORD -->
-        <div id="password-mode" style="display: none;"> (Desain Password dari kode sebelumnya) ... </div>
+        <div id="password-mode" style="display: none;">
+            <div class="pwd-container">
+                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h2 style="margin-top: 0; font-size: 20px; font-weight: 600;">Halaman Terkunci</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Masukkan password untuk melihat konten.</p>
+                <input type="text" id="pwd-input" placeholder="Ketik password di sini..." autocomplete="off" onfocus="handlePwdClick()">
+                <p class="error-msg" id="pwd-error">Password salah!</p>
+                <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
+            </div>
+        </div>
         
         <!-- 4. HALAMAN LOADING (BARU) -->
         <div id="loading-mode" style="display: none; padding-top: 50px;">
-            <svg viewBox="0 0 24 24" width="70" height="70" stroke="#007bff" stroke-width="1.5" fill="none" ... > (Ikon loading) </svg>
+            <svg viewBox="0 0 24 24" width="70" height="70" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M4.93 4.93l2.83 2.83"></path><path d="M16.24 16.24l2.83 2.83"></path><path d="M2 12h4"></path><path d="M18 12h4"></path><path d="M4.93 19.07l2.83-2.83"></path><path d="M16.24 7.76l2.83-2.83"></path></svg>
             <h2 style="margin-top: 10px; font-weight: 600;">Menyiapkan Konten Anda</h2>
             <p style="color: #666;">Mohon tunggu sebentar...</p>
             <div class="progress-bar"><div id="progress-fill"></div></div>
@@ -62,21 +89,18 @@
 
         <!-- 6. HALAMAN LANJUTKAN (BARU) -->
         <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
-             <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" ...> (Ikon Link) </svg>
+             <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
             <h2 style="margin-top: 10px; font-weight: 600;">Link Anda Siap</h2>
             <p style="color: #666; margin-bottom: 30px;">Klik untuk melanjutkan ke tujuan akhir.</p>
             <button id="lanjutkan-btn" onclick="openFinalLink()" style="width: auto; padding: 12px 40px; background-color: #28a745;">Lanjutkan</button>
         </div>
-        
     </div>
 
     <script>
-        // DAFTAR IKLAN
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
         ];
-
         let _0xVault =[]; 
         let _pageData = null;
 
@@ -87,135 +111,170 @@
             return ad;
         }
 
+        function hideAllModes() {
+            ['create-mode', 'robot-mode', 'password-mode', 'loading-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+
         // ==========================================
         // ALUR UTAMA & PROGRESI HALAMAN
         // ==========================================
-        async function checkProgression() {
-            const path = window.location.pathname.split('/').filter(p => p).pop();
+        function runProgressionChecks(id) {
             hideAllModes();
-
+            
             // 1. Cek Robot
-            if (!isStatePassed('robot_pass', path)) {
+            const robotPassTime = localStorage.getItem('robot_pass_' + id);
+            const isRobotPassed = robotPassTime && (Date.now() - parseInt(robotPassTime) < 3600000); // 1 Jam
+            if (!isRobotPassed) {
                 document.getElementById('robot-mode').style.display = 'block';
-                if (sessionStorage.getItem('robot_state_' + path) === 'spinning') {
-                    // ... (logika spinner dari kode sebelumnya)
+                if (sessionStorage.getItem('robot_state_' + id) === 'spinning') {
+                    showSpinnerVisual();
+                    setTimeout(finishSpinnerAndShowContinue, 1500);
                 }
                 return;
             }
 
             // 2. Cek Password
-            const hasPassword = _pageData && _pageData.password && _pageData.password.trim() !== "";
-            if (hasPassword && localStorage.getItem('pwd_pass_' + path) !== _pageData.password) {
+            const hasPassword = _pageData.password && _pageData.password.trim() !== "";
+            if (hasPassword && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
                 document.getElementById('password-mode').style.display = 'block';
                 return;
             }
 
-            // 3. JEBAKAN HALAMAN LOADING (BARU)
-            if (!sessionStorage.getItem('loading_shown_' + path)) {
+            // 3. Jebakan Halaman Loading
+            if (!sessionStorage.getItem('loading_shown_' + id)) {
                 document.getElementById('loading-mode').style.display = 'block';
-                // Animasi progress bar
                 setTimeout(() => { document.getElementById('progress-fill').style.width = '100%'; }, 100);
-
-                // Setelah loading, halaman ini jadi iklan & buka konten
                 setTimeout(() => {
-                    sessionStorage.setItem('loading_shown_' + path, 'true');
+                    sessionStorage.setItem('loading_shown_' + id, 'true');
                     const contentTab = window.open(window.location.href, '_blank');
-                    if (contentTab) { window.location.href = getNextAd(); } 
-                    else { window.location.reload(); }
-                }, 2800); // Tunggu 2.8 detik
+                    if (contentTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
+                }, 2800);
                 return;
             }
             
-            // 4. Lolos Semua -> Tampilkan Konten
+            // 4. Lolos Semua
             renderText(_pageData.content);
         }
 
         // ==========================================
-        // FUNGSI-FUNGSI JEBAKAN (Password, Robot, etc)
-        // ... (Semua fungsi jebakan dari kode sebelumnya tetap sama)
+        // FUNGSI-FUNGSI JEBAKAN
+        // ==========================================
+        function verifyRobotClick(event) {
+            event.stopPropagation();
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            sessionStorage.setItem('robot_state_' + id, 'spinning');
+            const newTab = window.open(window.location.href, '_blank');
+            showSpinnerVisual();
+            if (newTab) { setTimeout(() => { window.location.href = getNextAd(); }, 1500); } 
+            else { setTimeout(finishSpinnerAndShowContinue, 1500); }
+        }
 
-        // Perubahan di 'submitPassword' dan 'continueToNextPhase'
+        function showSpinnerVisual() {
+            const box = document.getElementById('c-box');
+            box.style.border = 'none'; box.style.backgroundColor = 'transparent';
+            box.innerHTML = '<div class="spinner-icon"></div>'; box.style.pointerEvents = 'none';
+        }
+
+        function finishSpinnerAndShowContinue() {
+            const box = document.getElementById('c-box');
+            box.style.border = '2px solid #28a745'; box.style.backgroundColor = '#28a745';
+            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            document.getElementById('continue-btn').style.display = 'block';
+        }
+
+        function continueToNextPhase() {
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            localStorage.setItem('robot_pass_' + id, Date.now());
+            sessionStorage.removeItem('robot_state_' + id); 
+            const nextTab = window.open(window.location.href, '_blank');
+            if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
+        }
+
+        function handlePwdClick() {
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            if (!sessionStorage.getItem('pwd_clicked_' + id)) {
+                sessionStorage.setItem('pwd_clicked_' + id, 'true');
+                const newTab = window.open(window.location.href, '_blank');
+                if (newTab) { window.location.href = getNextAd(); }
+            }
+        }
+
         function submitPassword() {
-            // ... (logika cek password benar/salah)
-            if (passwordBenar) {
-                localStorage.setItem('pwd_pass_' + path, _pageData.password);
-                
-                // Buka tab baru untuk memulai fase LOADING
-                const nextStepTab = window.open(window.location.href, '_blank');
-                if (nextStepTab) { window.location.href = getNextAd(); } 
-                else { window.location.reload(); }
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            const pwdInput = document.getElementById('pwd-input').value;
+            if (pwdInput !== _pageData.password) {
+                document.getElementById('pwd-error').style.display = 'block';
+            } else {
+                localStorage.setItem('pwd_pass_' + id, _pageData.password);
+                const nextTab = window.open(window.location.href, '_blank');
+                if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
             }
         }
 
         // ==========================================
-        // SISTEM KLIK LINK DI DALAM KONTEN
+        // SISTEM KONTEN & LINK
         // ==========================================
+        function universalMask(url) {
+            try {
+                let u = new URL(url);
+                let newPath = u.pathname.split('/').map(part => (part.length > 5 && /[0-9]/.test(part)) ? (Math.random().toString(36).substring(2, 10) + (part.includes('.') ? '.' + part.split('.').pop() : '')) : part).join('/');
+                let params = new URLSearchParams(u.search);
+                params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
+                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
+            } catch (e) { return url; }
+        }
+
+        function renderText(text) {
+            const viewDiv = document.getElementById('view-mode');
+            viewDiv.style.display = 'block'; _0xVault = [];
+            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
+                _0xVault.push(btoa(url));
+                return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
+            });
+        }
+
         function handleAdSystem(id, event) {
             event.preventDefault();
             const realLink = atob(_0xVault[id]);
             const clickToken = 'click_' + btoa(realLink).substring(0, 12);
-            const step = sessionStorage.getItem(clickToken);
-
-            if (!step) {
-                // KLIK 1: Tetap sama, buka 2 iklan
+            if (!sessionStorage.getItem(clickToken)) {
                 sessionStorage.setItem(clickToken, 'step2');
                 const adWin = window.open(getNextAd(), '_blank');
                 if (adWin) { adWin.blur(); window.focus(); }
                 setTimeout(() => { window.location.href = getNextAd(); }, 150);
             } else {
-                // KLIK 2: Buka Halaman Lanjutkan (Bukan link asli)
                 sessionStorage.removeItem(clickToken);
-                
-                const encodedUrl = btoa(realLink);
-                // Kita buat URL khusus untuk halaman Lanjutkan
-                const continuePageUrl = `${window.location.origin}/lanjutkan#${encodedUrl}`;
-                
-                const nextStepTab = window.open(continuePageUrl, '_blank');
-                if (nextStepTab) { window.location.href = getNextAd(); }
-                else { window.location.href = continuePageUrl; }
+                const continueUrl = `${window.location.origin}/lanjutkan#${btoa(realLink)}`;
+                const nextTab = window.open(continueUrl, '_blank');
+                if (nextTab) { window.location.href = getNextAd(); } else { window.location.href = continueUrl; }
             }
         }
-
-        // ==========================================
-        // LOGIKA HALAMAN LANJUTKAN (BARU)
-        // ==========================================
-        function initLanjutkanPage() {
-            hideAllModes();
-            document.getElementById('continue-to-link-mode').style.display = 'block';
-        }
-
+        
         function openFinalLink() {
-            const encodedUrl = window.location.hash.substring(1);
-            if (!encodedUrl) return;
-
-            const realUrl = atob(encodedUrl);
-            
-            // Buka link asli di tab baru
+            const realUrl = atob(window.location.hash.substring(1));
             window.open(realUrl, '_blank');
-            // Halaman lanjutkan ini jadi IKLAN TERAKHIR
             window.location.href = getNextAd();
         }
-
 
         // ==========================================
         // INISIALISASI & ROUTING UTAMA
         // ==========================================
         async function init() {
             const path = window.location.pathname;
-
-            // Routing untuk halaman Lanjutkan
             if (path.startsWith('/lanjutkan')) {
-                initLanjutkanPage();
+                hideAllModes(); document.getElementById('continue-to-link-mode').style.display = 'block';
                 return;
             }
 
-            // Routing untuk halaman utama
             const id = path.split('/').filter(p => p).pop();
-            if (id && id !== 'index.html') {
+            if (id && id !== 'index.html' && id !== 'lanjutkan') {
                 try {
                     const res = await fetch('/api/get/' + id);
                     _pageData = await res.json();
-                    checkProgression();
+                    if(!_pageData.content) throw new Error("Not found");
+                    runProgressionChecks(id);
                 } catch (e) {
                     hideAllModes(); document.getElementById('create-mode').style.display = 'block';
                 }
@@ -224,7 +283,30 @@
             }
         }
 
-        // ... (Kode generateLink, copyLink, dan fungsi-fungsi lainnya tetap sama)
+        async function generateLink() {
+            const text = document.getElementById('input-text').value;
+            const pwd = document.getElementById('input-password').value;
+            if (!text) return;
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true; btn.innerText = "Processing...";
+            try {
+                const res = await fetch('/api/create', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: text, password: pwd })
+                });
+                const data = await res.json();
+                document.getElementById('result-url').value = window.location.origin + '/' + data.id;
+                document.getElementById('result-box').style.display = 'block';
+            } catch (e) { alert("Error!"); }
+            btn.disabled = false; btn.innerText = "Buat Link";
+        }
+
+        function copyLink() {
+            const copyText = document.getElementById("result-url");
+            copyText.select(); document.execCommand("copy");
+            document.getElementById("btn-copy").innerText = "Tersalin!";
+            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
+        }
 
         init();
     </script>
