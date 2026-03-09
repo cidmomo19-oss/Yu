@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Viewer</title>
+    <title>Secure Link Viewer</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -13,7 +13,7 @@
         button:hover { background-color: #333333; }
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; border-bottom: 1px dashed #0000ee; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        .no-select { -webkit-user-select: none; user-select: none; }
+        .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
 <body class="no-select" oncontextmenu="return false">
@@ -21,7 +21,7 @@
     <div class="container">
         <!-- MODE BUAT -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
+            <textarea id="input-text" placeholder="Masukkan teks dan link apa saja..."></textarea>
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
@@ -29,99 +29,105 @@
             </div>
         </div>
 
-        <!-- MODE VIEW -->
+        <!-- MODE LIHAT -->
         <div id="view-mode" style="display: none;"></div>
     </div>
 
     <script>
-        // DAFTAR IKLAN (Bisa Abang tambah terus di sini)
+        // DAFTAR IKLAN (Bisa ditambah terus)
         const ADS = [
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860",
-            "https://shope.ee/contoh-iklan-3",
-            "https://google.com/iklan-4"
+            "https://shope.ee/iklan3",
+            "https://tokopedia.link/iklan4"
         ];
 
-        let _0xLinkData = []; // Link asli disimpan di RAM
+        let _0xSecureStore = []; // Brankas link asli di RAM
 
-        // 1. Ambil iklan selanjutnya secara urut
+        // 1. Ambil iklan secara urut (Disimpan di Memori Browser)
         function getNextAd() {
-            let idx = parseInt(localStorage.getItem('_ad_ptr') || '0');
-            let adUrl = ADS[idx % ADS.length];
-            localStorage.setItem('_ad_ptr', idx + 1);
-            return adUrl;
+            let pointer = parseInt(localStorage.getItem('_ad_seq_ptr') || '0');
+            let url = ADS[pointer % ADS.length];
+            localStorage.setItem('_ad_seq_ptr', pointer + 1);
+            return url;
         }
 
-        // 2. Fungsi Acak Kode Link (Hanya tampilan)
-        function maskUrlCode(url) {
+        // 2. SMART MASKING: Mencari dan mengacak kode di dalam URL
+        function smartMask(url) {
             try {
                 let u = new URL(url);
-                let pathParts = u.pathname.split('/');
-                let lastPart = pathParts.pop(); // ambil bagian kode (misal: 79W1cFmX1.mp4)
-
-                if (lastPart.length > 3) {
-                    let ext = lastPart.includes('.') ? '.' + lastPart.split('.').pop() : '';
-                    let randomStr = Math.random().toString(36).substring(2, 10); // kode acak
-                    return u.origin + u.pathname.replace(lastPart, randomStr + ext);
-                }
+                let path = u.pathname;
+                
+                // Mencari bagian yang mirip kode (karakter alfanumerik panjang > 5)
+                // Contoh: /u/79W1cFmX1 atau /file/d/1a2b3c4d5e6f/view
+                let newPath = path.split('/').map(part => {
+                    if (part.length > 5 && /[0-9]/.test(part)) { // Jika part > 5 karakter & ada angkanya
+                        let ext = part.includes('.') ? '.' + part.split('.').pop() : '';
+                        let randomCode = Math.random().toString(36).substring(2, 10);
+                        return randomCode + ext;
+                    }
+                    return part;
+                }).join('/');
+                
+                return u.origin + newPath + u.search;
+            } catch (e) {
                 return url;
-            } catch (e) { return url; }
+            }
         }
 
-        // 3. Tampilkan Teks dan Link Terproteksi
-        function showViewMode(text) {
+        // 3. Menampilkan Teks ke User
+        function renderContent(text) {
             document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
 
-            _0xLinkData = [];
-            const processedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                _0xLinkData.push(btoa(url)); // Simpan aslinya dalam Base64
-                let id = _0xLinkData.length - 1;
-                let displayUrl = maskUrlCode(url);
-                return `<span class="link-blue" onclick="forceAdLogic(${id}, event)">${displayUrl}</span>`;
+            _0xSecureStore = [];
+            const processed = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+                _0xSecureStore.push(btoa(url)); // Link asli dipaket ke Base64
+                let id = _0xSecureStore.length - 1;
+                let maskedDisplay = smartMask(url); // Link yang tampil jadi acak
+                return `<span class="link-blue" onclick="executeAgresifAd(${id}, event)">${maskedDisplay}</span>`;
             });
-            viewDiv.innerHTML = processedText;
+            viewDiv.innerHTML = processed;
         }
 
-        // 4. LOGIKA UTAMA (Agresif Klik)
-        function forceAdLogic(id, event) {
+        // 4. LOGIKA IKLAN AGRESIF
+        function executeAgresifAd(id, event) {
             event.preventDefault();
-            const realUrl = atob(_0xLinkData[id]);
-            const storageKey = 'st_' + btoa(realUrl).substring(0, 12);
-            const step = sessionStorage.getItem(storageKey);
+            const realUrl = atob(_0xSecureStore[id]);
+            const clickKey = 'state_' + btoa(realUrl).substring(0, 15);
+            const hasClicked = sessionStorage.getItem(clickKey);
 
-            if (!step) {
+            if (!hasClicked) {
                 // --- KLIK PERTAMA ---
-                sessionStorage.setItem(storageKey, 'ready');
+                sessionStorage.setItem(clickKey, 'step2');
+                
+                // Buka Iklan 1 di Tab Baru
+                const win = window.open(getNextAd(), '_blank');
+                if (win) { win.blur(); window.focus(); }
 
-                // A. Buka Iklan 1 di Tab Baru
-                const newTabAd = window.open(getNextAd(), '_blank');
-                if (newTabAd) { newTabAd.blur(); window.focus(); }
-
-                // B. Tab Lama Jadi Iklan 2
+                // Ganti Tab Utama jadi Iklan 2
                 setTimeout(() => {
                     window.location.href = getNextAd();
-                }, 100);
-
+                }, 200);
             } else {
                 // --- KLIK KEDUA ---
-                sessionStorage.removeItem(storageKey); // Reset biar bisa diklik lagi nanti
+                sessionStorage.removeItem(clickKey); // Reset biar bisa diklik lagi
 
-                // A. Buka Link Asli di Tab Baru
-                let finalLink = realUrl;
-                if (finalLink.includes('pixeldrain.com/api/file/')) finalLink = finalLink.replace('/api/file/', '/u/');
+                // Buka Link Asli di Tab Baru
+                let target = realUrl;
+                if (target.includes('pixeldrain.com/api/file/')) target = target.replace('/api/file/', '/u/');
                 
-                window.open(finalLink, '_blank');
+                window.open(target, '_blank');
 
-                // B. Tab Lama Jadi Iklan 3
+                // Ganti Tab Utama jadi Iklan 3
                 setTimeout(() => {
                     window.location.href = getNextAd();
-                }, 100);
+                }, 200);
             }
         }
 
-        // --- SISTEM PEMBUAT LINK (Standard) ---
+        // --- SISTEM PEMBUAT LINK ---
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             if (!text) return;
@@ -149,15 +155,16 @@
 
         async function init() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
-            if (path && path !== 'index.html' && path.length > 3) {
+            if (path && path !== 'index.html') {
                 try {
                     const res = await fetch('/api/get/' + path);
                     const data = await res.json();
-                    showViewMode(data.content);
+                    renderContent(data.content);
                 } catch (e) { document.getElementById('create-mode').style.display = 'block'; }
             } else { document.getElementById('create-mode').style.display = 'block'; }
         }
 
+        // Anti Inspect Element
         document.addEventListener('keydown', (e) => {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault();
         });
