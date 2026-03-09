@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
     <style>
-        /* TAMPILAN BERSIH ASLI (Tanpa embel-embel aneh) */
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
         textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
@@ -13,27 +12,21 @@
         textarea:focus, input:focus { border-color: #000000; }
         button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
         button:hover { background-color: #333333; }
-        
         .copy-group { display: flex; gap: 10px; }
         .copy-group input { margin-bottom: 0; }
         .copy-group button { white-space: nowrap; }
-
-        /* Ini cuma BAJU-nya doang link, isinya adalah tombol tersembunyi */
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { text-decoration: underline; }
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
 <body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
-            
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <p style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">LINK BERHASIL DIBUAT:</p>
                 <div class="copy-group">
@@ -42,12 +35,9 @@
                 </div>
             </div>
         </div>
-
-        <!-- MODE BACA PESAN -->
         <div id="view-mode" style="display: none;"></div>
     </div>
 
-    <!-- MODAL COPY CUSTOM -->
     <div id="vanillaCopyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
             <h3 style="margin-top: 0; font-size: 18px; font-weight: bold;">Bypass Pixeldrain</h3>
@@ -60,100 +50,70 @@
     </div>
 
     <script>
-        // --- DATA IKLAN ---
-        const ADS =[
+        const ADS = [
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", 
             "https://omg10.com/4/10390860"
         ];
-
-        // "BRANKAS" PENYIMPANAN URL
-        let _0xStore =[];
-
-        const copyModal = {
-            show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; }
-        };
-
-        function showCreateMode() {
-            document.getElementById('create-mode').style.display = 'block';
-            document.getElementById('view-mode').style.display = 'none';
-        }
+        let _0xStore = [];
+        const copyModal = { show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; } };
 
         function showViewMode(text) {
             document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
-            
-            _0xStore =[];
-            
+            _0xStore = [];
             const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                _0xStore.push({ type: 'single', u: btoa(url) });
+                _0xStore.push({ u: btoa(url) });
                 let currentIndex = _0xStore.length - 1;
-                
-                // ==========================================================
-                // BAGIAN INI DIUBAH: Kita ganti onclick menjadi onmousedown dan onmouseup
-                // ==========================================================
+                // IMPLEMENTASI BARU: Panggil fungsi berbeda untuk mousedown dan mouseup
                 return `<span class="link-blue" 
-                              onmousedown="handleAdTrigger(${currentIndex}, event)" 
-                              onmouseup="handleFinalRedirect(${currentIndex}, event)">${url}</span>`;
+                              onmousedown="handleMouseDown(${currentIndex}, event)" 
+                              onmouseup="handleMouseUp(${currentIndex}, event)">${url}</span>`;
             });
-            
             viewDiv.innerHTML = linkedText;
         }
 
-        // =======================================================================
-        // FUNGSI LOGIKA IKLAN BARU (MENGGANTIKAN handleClick & executeRedirect)
-        // =======================================================================
+        // ==========================================================
+        // LOGIKA BARU SESUAI PIKIRAN LU
+        // ==========================================================
 
-        /**
-         * Fungsi ini dieksekusi saat tombol mouse DITEKAN (mousedown).
-         * Tugasnya: Cek status klik, jika ini klik pertama, buka IKLAN 1.
-         */
-        function handleAdTrigger(index, event) {
-            event.preventDefault(); // Mencegah perilaku default browser
+        function handleMouseDown(index, event) {
+            // event.preventDefault() sangat penting agar link tidak berjalan normal
+            event.preventDefault(); 
             const item = _0xStore[index];
             if (!item) return;
 
-            const linkId = 'adv_state_' + btoa(atob(item.u)).substring(0, 20);
-            const clickState = sessionStorage.getItem(linkId);
+            const originalUrl = atob(item.u);
+            const linkId = 'adv_click_state_' + btoa(originalUrl);
+            const adShown = sessionStorage.getItem(linkId);
 
-            if (!clickState) {
-                // KLIK PERTAMA: Buka iklan pertama
+            if (!adShown) {
+                // KLIK PERTAMA (Tekan): Buka Iklan 1
                 try {
                     window.open(ADS[0], '_blank');
-                } catch(e) {
-                    console.error("Popup blocker mungkin memblokir iklan 1:", e);
-                }
+                } catch (e) {}
             }
         }
 
-        /**
-         * Fungsi ini dieksekusi saat tombol mouse DILEPAS (mouseup).
-         * Tugasnya: Jika ini klik pertama, buka IKLAN 2 dan simpan status.
-         *           Jika ini klik kedua, buka LINK ASLI.
-         */
-        function handleFinalRedirect(index, event) {
+        function handleMouseUp(index, event) {
             event.preventDefault();
             const item = _0xStore[index];
             if (!item) return;
-            
-            const originalUrl = atob(item.u);
-            const linkId = 'adv_state_' + btoa(originalUrl).substring(0, 20);
-            const clickState = sessionStorage.getItem(linkId);
 
-            if (!clickState) {
-                // KLIK PERTAMA: Buka iklan kedua dan tandai di browser
+            const originalUrl = atob(item.u);
+            const linkId = 'adv_click_state_' + btoa(originalUrl);
+            const adShown = sessionStorage.getItem(linkId);
+
+            if (!adShown) {
+                // KLIK PERTAMA (Lepas): Buka Iklan 2 & pasang penanda
                 try {
                     window.open(ADS[1], '_blank');
-                } catch(e) {
-                    console.error("Popup blocker mungkin memblokir iklan 2:", e);
-                }
-                // Simpan "ingatan" di browser bahwa link ini sudah diklik sekali
-                sessionStorage.setItem(linkId, '1');
+                } catch (e) {}
+                sessionStorage.setItem(linkId, 'true'); // Tandai bahwa iklan sudah muncul
             } else {
-                // KLIK KEDUA: Buka link asli dan hapus "ingatan"
+                // KLIK KEDUA (Lepas): Buka link asli & hapus penanda
                 sessionStorage.removeItem(linkId);
-
-                // Logika Pixeldrain asli tetap dipertahankan
+                
                 let finalUrl = originalUrl;
                 if (finalUrl.includes('pixeldrain.com/api/file/')) {
                     finalUrl = finalUrl.replace('/api/file/', '/u/');
@@ -163,115 +123,23 @@
                     copyModal.show();
                     return;
                 }
-
-                // Buka link asli
-                let contentWindow = window.open(finalUrl, '_blank');
+                
+                const contentWindow = window.open(finalUrl, '_blank');
                 if (!contentWindow) {
-                    // Fallback jika masih terblokir
                     window.location.href = finalUrl;
                 }
             }
         }
 
         // ==========================================================
-        // SISA FUNGSI BAWAAN (Tidak Perlu Diubah)
+        // SISA FUNGSI BAWAAN (Tidak Diubah)
         // ==========================================================
-        
-        function doCopy() {
-            const input = document.getElementById("copyUrlInput");
-            input.select();
-            input.setSelectionRange(0, 99999);
-            
-            let success = false;
-            try {
-                document.execCommand("copy");
-                success = true;
-            } catch(e) {
-                if(navigator.clipboard) {
-                    navigator.clipboard.writeText(input.value);
-                    success = true;
-                }
-            }
-
-            if(success) {
-                const btn = document.getElementById("btnCopy");
-                btn.innerHTML = 'Tersalin!';
-                btn.style.backgroundColor = "#28a745";
-                setTimeout(() => {
-                    btn.innerHTML = 'Salin';
-                    btn.style.backgroundColor = "#000";
-                    document.getElementById('vanillaCopyModal').style.display = 'none';
-                    window.location.href = ADS[Math.floor(Math.random() * ADS.length)];
-                }, 1500);
-            } else {
-                alert("Browser tidak mendukung salin otomatis. Silakan blok tulisan dan salin manual.");
-            }
-        }
-        
-        async function init() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            
-            if (id && id !== 'index.html') {
-                try {
-                    const res = await fetch('/api/get/' + id);
-                    if (!res.ok) throw new Error();
-                    const data = await res.json();
-                    
-                    showViewMode(data.content);
-                } catch (e) {
-                    showCreateMode();
-                }
-            } else {
-                showCreateMode();
-            }
-        }
-
-        async function generateLink() {
-            const text = document.getElementById('input-text').value;
-            if (!text) return;
-            
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "Loading...";
-
-            try {
-                const res = await fetch('/api/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text })
-                });
-                const data = await res.json();
-                
-                const finalUrl = window.location.origin + '/' + data.id;
-                document.getElementById('result-url').value = finalUrl;
-                document.getElementById('result-box').style.display = 'block';
-            } catch (e) {
-                alert("Gagal konek ke KV Database!");
-            }
-            btn.disabled = false; btn.innerText = "Buat Link";
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("result-url");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            
-            const btn = document.getElementById("btn-copy");
-            btn.innerText = "Tersalin!";
-            btn.style.backgroundColor = "#28a745";
-            
-            setTimeout(() => {
-                btn.innerText = "Salin";
-                btn.style.backgroundColor = "#000000";
-            }, 2000);
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) {
-                e.preventDefault();
-            }
-        });
-
+        function showCreateMode() { document.getElementById('create-mode').style.display = 'block'; document.getElementById('view-mode').style.display = 'none'; }
+        function doCopy() { const input = document.getElementById("copyUrlInput"); input.select(); input.setSelectionRange(0, 99999); let success = false; try { document.execCommand("copy"); success = true; } catch (e) { if (navigator.clipboard) { navigator.clipboard.writeText(input.value); success = true; } } if (success) { const btn = document.getElementById("btnCopy"); btn.innerHTML = 'Tersalin!'; btn.style.backgroundColor = "#28a745"; setTimeout(() => { btn.innerHTML = 'Salin'; btn.style.backgroundColor = "#000"; document.getElementById('vanillaCopyModal').style.display = 'none'; window.location.href = ADS[Math.floor(Math.random() * ADS.length)]; }, 1500); } else { alert("Browser tidak mendukung salin otomatis."); } }
+        async function init() { const id = window.location.pathname.split('/').filter(p => p).pop(); if (id && id !== 'index.html') { try { const res = await fetch('/api/get/' + id); if (!res.ok) throw new Error(); const data = await res.json(); showViewMode(data.content); } catch (e) { showCreateMode(); } } else { showCreateMode(); } }
+        async function generateLink() { const text = document.getElementById('input-text').value; if (!text) return; const btn = document.getElementById('btn-submit'); btn.disabled = true; btn.innerText = "Loading..."; try { const res = await fetch('/api/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: text }) }); const data = await res.json(); const finalUrl = window.location.origin + '/' + data.id; document.getElementById('result-url').value = finalUrl; document.getElementById('result-box').style.display = 'block'; } catch (e) { alert("Gagal konek ke KV Database!"); } btn.disabled = false; btn.innerText = "Buat Link"; }
+        function copyLink() { const copyText = document.getElementById("result-url"); copyText.select(); copyText.setSelectionRange(0, 99999); document.execCommand("copy"); const btn = document.getElementById("btn-copy"); btn.innerText = "Tersalin!"; btn.style.backgroundColor = "#28a745"; setTimeout(() => { btn.innerText = "Salin"; btn.style.backgroundColor = "#000000"; }, 2000); }
+        document.addEventListener('keydown', function(e) { if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) { e.preventDefault(); } });
         init();
     </script>
 
