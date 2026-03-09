@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Viewer Verification</title>
+    <title>Secure Viewer</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s;}
         textarea { height: 300px; resize: none; }
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        input:focus, textarea:focus { border-color: #007bff; }
+        
+        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
         button:hover { background-color: #333333; }
         
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; border: none; }
         .link-blue:hover { color: #ff0000; text-decoration: none; }
 
-        /* Style Captcha / Robot */
+        /* Style Robot */
         .captcha-btn {
             display: inline-flex; align-items: center; justify-content: flex-start;
             background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px;
             border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             font-size: 16px; color: #333; width: 280px; margin: 0 auto;
         }
-        
-        /* Box Captcha (Hanya ini yang bisa diklik) */
         .captcha-box {
             width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px;
             margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center;
@@ -31,24 +32,24 @@
         }
         .captcha-box:hover { border-color: #888; }
         
-        /* Animasi Spinner Muter */
-        @keyframes spin-anim {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin-anim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinner-icon {
             width: 18px; height: 18px; border: 3px solid #e0e0e0;
             border-top: 3px solid #0056b3; border-radius: 50%;
             animation: spin-anim 1s linear infinite;
         }
         
-        /* Tombol Lanjut (Sembunyi di awal) */
         #continue-btn {
             display: none; margin: 25px auto 0; background-color: #007bff; color: #fff;
-            border: none; padding: 12px 30px; font-size: 16px; border-radius: 4px; 
-            cursor: pointer; font-weight: bold; transition: background 0.2s;
+            width: auto;
         }
         #continue-btn:hover { background-color: #0056b3; }
+
+        /* Style Password */
+        .pwd-container {
+            text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
 
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -58,7 +59,19 @@
 
     <div class="container">
         
-        <!-- HALAMAN VERIFIKASI ROBOT -->
+        <!-- 1. MODE BUAT LINK -->
+        <div id="create-mode" style="display: none;">
+            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
+            <!-- Input Password Baru -->
+            <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
+            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <div id="result-box" style="display: none; margin-top: 20px;">
+                <input type="text" id="result-url" readonly onclick="this.select()">
+                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
+            </div>
+        </div>
+
+        <!-- 2. HALAMAN VERIFIKASI ROBOT -->
         <div id="robot-mode" style="display: none; text-align: center; padding-top: 30px;">
             <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
                 <rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect>
@@ -73,36 +86,45 @@
             <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
             
             <div class="captcha-btn" id="captcha-wrap">
-                <!-- KLIK HANYA BERFUNGSI DI SINI -->
                 <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
                 <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
             </div>
 
-            <button id="continue-btn" onclick="continueToContent()">Lanjut ke Halaman</button>
+            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut ke Halaman</button>
         </div>
 
-        <!-- MODE VIEW KONTEN -->
-        <div id="view-mode" style="display: none;"></div>
-
-        <!-- MODE BUAT LINK -->
-        <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
-            <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
+        <!-- 3. HALAMAN PASSWORD -->
+        <div id="password-mode" style="display: none;">
+            <div class="pwd-container">
+                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <h2 style="margin-top: 0; font-size: 20px; font-weight: 600;">Halaman Terkunci</h2>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Masukkan password untuk melihat konten.</p>
+                
+                <!-- Input Tipe Text (Bukan Password) -->
+                <input type="text" id="pwd-input" placeholder="Ketik password di sini..." autocomplete="off" onfocus="handlePwdClick()">
+                <p class="error-msg" id="pwd-error">Password salah!</p>
+                
+                <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
             </div>
         </div>
+
+        <!-- 4. MODE VIEW KONTEN -->
+        <div id="view-mode" style="display: none;"></div>
+        
     </div>
 
     <script>
-        // DAFTAR IKLAN (Hanya 2 link asli milik Abang)
+        // DAFTAR IKLAN
         const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
         ];
 
         let _0xVault =[]; 
+        let _pageData = null; // Simpan data dari database
 
         function getNextAd() {
             let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
@@ -112,77 +134,127 @@
         }
 
         // ==========================================
-        // 1. SISTEM ROBOT (Tahap 1: Mulai Loading)
+        // MANAJEMEN HALAMAN
+        // ==========================================
+        function hideAllModes() {
+            document.getElementById('create-mode').style.display = 'none';
+            document.getElementById('robot-mode').style.display = 'none';
+            document.getElementById('password-mode').style.display = 'none';
+            document.getElementById('view-mode').style.display = 'none';
+        }
+
+        function checkProgression() {
+            const path = window.location.pathname.split('/').filter(p => p).pop();
+            hideAllModes();
+
+            // 1. Cek Robot
+            let passTime = localStorage.getItem('robot_pass_' + path);
+            let isRobotPassed = passTime && (Date.now() - parseInt(passTime) < 3600000); // 1 Jam
+            let robotState = sessionStorage.getItem('robot_state_' + path);
+
+            if (!isRobotPassed) {
+                document.getElementById('robot-mode').style.display = 'block';
+                if (robotState === 'spinning') {
+                    showSpinnerVisual();
+                    setTimeout(finishSpinnerAndShowContinue, 1500);
+                }
+                return;
+            }
+
+            // 2. Cek Password (Jika Dibuat Pakai Password)
+            let isPwdPassed = true;
+            if (_pageData && _pageData.password && _pageData.password.trim() !== "") {
+                isPwdPassed = (localStorage.getItem('pwd_pass_' + path) === _pageData.password);
+            }
+
+            if (!isPwdPassed) {
+                document.getElementById('password-mode').style.display = 'block';
+                return;
+            }
+
+            // 3. Lolos Semua -> Render Konten
+            renderText(_pageData.content);
+        }
+
+        // ==========================================
+        // SISTEM ROBOT
         // ==========================================
         function verifyRobotClick(event) {
-            event.stopPropagation(); // Pastikan klik tidak merembet
+            event.stopPropagation();
             const path = window.location.pathname.split('/').filter(p => p).pop();
-            
-            // Tandai sesi untuk tab duplikat
             sessionStorage.setItem('robot_state_' + path, 'spinning');
-            
-            // Buka tab baru duluan biar tidak kena blokir browser (Popup Blocker)
-            // Di tab baru, animasi muter akan berjalan selama 1.5 detik
             const newTab = window.open(window.location.href, '_blank');
-            
-            // Jalankan animasi muter di tab saat ini juga
             showSpinnerVisual();
-            
-            if (newTab) {
-                // Beri jeda 1.5 detik (menyesuaikan lama muter) baru ubah tab ini ke Iklan
-                setTimeout(() => {
-                    window.location.href = getNextAd();
-                }, 1500);
-            } else {
-                // Jika tab terblokir, jalankan full animasi di tab ini
-                setTimeout(() => {
-                    finishSpinnerAndShowContinue();
-                }, 1500);
-            }
+            if (newTab) { setTimeout(() => { window.location.href = getNextAd(); }, 1500); } 
+            else { setTimeout(() => { finishSpinnerAndShowContinue(); }, 1500); }
         }
 
-        // Fungsi Visual Spinner
         function showSpinnerVisual() {
             const box = document.getElementById('c-box');
-            box.style.border = 'none';
-            box.style.backgroundColor = 'transparent';
-            box.innerHTML = '<div class="spinner-icon"></div>';
-            box.style.pointerEvents = 'none'; // Matikan klik biar ga diklik dobel
+            box.style.border = 'none'; box.style.backgroundColor = 'transparent';
+            box.innerHTML = '<div class="spinner-icon"></div>'; box.style.pointerEvents = 'none';
         }
 
-        // Fungsi Selesai Spinner & Muncul Centang
         function finishSpinnerAndShowContinue() {
             const box = document.getElementById('c-box');
-            box.style.border = '2px solid #28a745';
-            box.style.backgroundColor = '#28a745';
+            box.style.border = '2px solid #28a745'; box.style.backgroundColor = '#28a745';
             box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-            
             document.getElementById('continue-btn').style.display = 'block';
         }
 
-        // ==========================================
-        // 2. SISTEM ROBOT (Tahap 2: Klik Lanjut)
-        // ==========================================
-        function continueToContent() {
+        function continueToNextPhase() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
-            
-            // Lulus verifikasi, berlaku 1 jam
             localStorage.setItem('robot_pass_' + path, Date.now());
             sessionStorage.removeItem('robot_state_' + path); 
-
-            // Buka tab baru ke konten teks
             const contentTab = window.open(window.location.href, '_blank');
-            
-            if (contentTab) {
-                // Halaman "Lanjut" ini DIUBAH JADI IKLAN
-                window.location.href = getNextAd();
+            if (contentTab) { window.location.href = getNextAd(); } 
+            else { window.location.reload(); }
+        }
+
+        // ==========================================
+        // SISTEM PASSWORD & JEBAKAN
+        // ==========================================
+        function handlePwdClick() {
+            const path = window.location.pathname.split('/').filter(p => p).pop();
+            // JEBAKAN: Kalau ini pertama kali diklik
+            if (!sessionStorage.getItem('pwd_clicked_' + path)) {
+                sessionStorage.setItem('pwd_clicked_' + path, 'true');
+                
+                // Duplikat Tab
+                const newTab = window.open(window.location.href, '_blank');
+                
+                if (newTab) {
+                    // Tab lama langsung jadi iklan
+                    window.location.href = getNextAd();
+                }
+            }
+        }
+
+        function submitPassword() {
+            const path = window.location.pathname.split('/').filter(p => p).pop();
+            const pwdInput = document.getElementById('pwd-input').value;
+            const errorMsg = document.getElementById('pwd-error');
+
+            if (pwdInput !== _pageData.password) {
+                // Password Salah
+                errorMsg.style.display = 'block';
             } else {
-                window.location.reload();
+                // Password Benar
+                errorMsg.style.display = 'none';
+                localStorage.setItem('pwd_pass_' + path, _pageData.password);
+                
+                // Buka konten di tab baru, tab password ini jadi IKLAN
+                const contentTab = window.open(window.location.href, '_blank');
+                if (contentTab) {
+                    window.location.href = getNextAd();
+                } else {
+                    window.location.reload();
+                }
             }
         }
 
         // ==========================================
-        // 3. SMART MASKING (Kode Acak)
+        // SMART MASKING & RENDER
         // ==========================================
         function universalMask(url) {
             try {
@@ -194,36 +266,25 @@
                     }
                     return part;
                 }).join('/');
-
                 let params = new URLSearchParams(u.search);
                 params.forEach((value, key) => {
                     if (value.length > 4) params.set(key, Math.random().toString(36).substring(2, 11));
                 });
-
-                let searchStr = params.toString() ? '?' + params.toString() : '';
-                return u.origin + newPath + searchStr;
+                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
             } catch (e) { return url; }
         }
 
         function renderText(text) {
-            document.getElementById('robot-mode').style.display = 'none';
-            document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
-
-            _0xVault =[];
-            const processedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+            _0xVault = [];
+            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xVault.push(btoa(url)); 
                 let id = _0xVault.length - 1;
-                let cleanDisplay = universalMask(url); 
-                return `<span class="link-blue" onclick="handleAdSystem(${id}, event)">${cleanDisplay}</span>`;
+                return `<span class="link-blue" onclick="handleAdSystem(${id}, event)">${universalMask(url)}</span>`;
             });
-            viewDiv.innerHTML = processedText;
         }
 
-        // ==========================================
-        // 4. JEBAKAN DI DALAM KONTEN (Klik Link)
-        // ==========================================
         function handleAdSystem(id, event) {
             event.preventDefault();
             const realLink = atob(_0xVault[id]);
@@ -239,57 +300,43 @@
                 sessionStorage.removeItem(clickToken);
                 let finalTarget = realLink;
                 if (finalTarget.includes('pixeldrain.com/api/file/')) finalTarget = finalTarget.replace('/api/file/', '/u/');
-                
                 window.open(finalTarget, '_blank');
                 setTimeout(() => { window.location.href = getNextAd(); }, 150);
             }
         }
 
         // ==========================================
-        // 5. SISTEM INISIALISASI
+        // INISIALISASI & CREATE
         // ==========================================
         async function init() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
             
             if (path && path !== 'index.html') {
-                let passTime = localStorage.getItem('robot_pass_' + path);
-                let isPassed = passTime && (Date.now() - parseInt(passTime) < 3600000); // Masa berlaku 1 Jam
-                let robotState = sessionStorage.getItem('robot_state_' + path);
-
-                if (isPassed) {
-                    // Lulus masuk ke halaman konten
-                    try {
-                        const res = await fetch('/api/get/' + path);
-                        const data = await res.json();
-                        renderText(data.content);
-                    } catch (e) { document.getElementById('create-mode').style.display = 'block'; }
-                } else {
-                    // Tampilkan halaman verifikasi robot
-                    document.getElementById('robot-mode').style.display = 'block';
-                    
-                    if (robotState === 'spinning') {
-                        // Jika ada di tab duplikat, langsung jalankan animasi muter dan tunggu 1.5 detik
-                        showSpinnerVisual();
-                        setTimeout(() => {
-                            finishSpinnerAndShowContinue();
-                        }, 1500);
-                    }
+                try {
+                    // Tarik data sekaligus (Konten + Password jika ada)
+                    const res = await fetch('/api/get/' + path);
+                    _pageData = await res.json();
+                    checkProgression();
+                } catch (e) { 
+                    hideAllModes(); document.getElementById('create-mode').style.display = 'block'; 
                 }
             } else {
-                document.getElementById('create-mode').style.display = 'block'; 
+                hideAllModes(); document.getElementById('create-mode').style.display = 'block'; 
             }
         }
 
-        // Tombol Buat Link (Utama)
         async function generateLink() {
             const text = document.getElementById('input-text').value;
+            const pwd = document.getElementById('input-password').value;
             if (!text) return;
+            
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Processing...";
             try {
+                // Mengirim Konten sekaligus Password ke Database (API)
                 const res = await fetch('/api/create', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text })
+                    body: JSON.stringify({ content: text, password: pwd })
                 });
                 const data = await res.json();
                 document.getElementById('result-url').value = window.location.origin + '/' + data.id;
