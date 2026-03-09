@@ -5,26 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
-        textarea { height: 300px; resize: none; }
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
-        #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        .no-select { -webkit-user-select: none; user-select: none; }
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; }
+        button { background: #000; color: #fff; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; }
+        .link-blue { color: #0000ee; text-decoration: none; cursor: pointer; font-weight: 500; }
+        #view-mode { white-space: pre-wrap; line-height: 1.6; }
     </style>
 </head>
-<body class="no-select" oncontextmenu="return false">
+<body>
 
     <div class="container">
         <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks..."></textarea>
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <textarea id="input-text" style="width:100%;height:200px" placeholder="Masukkan teks..."></textarea>
+            <button onclick="generateLink()">Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly style="width: 70%;">
-                <button onclick="copyLink()">Salin</button>
+                <input type="text" id="result-url" readonly>
             </div>
         </div>
 
@@ -33,31 +30,23 @@
     </div>
 
     <script>
-        // --- KONFIGURASI IKLAN ---
         const ADS = [
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", // Iklan 1 (Tab Baru)
-            "https://omg10.com/4/10390860" // Iklan 2 (Redirect Jembatan)
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", // Iklan 1
+            "https://omg10.com/4/10390860" // Iklan 2
         ];
 
         let _0xStore = [];
 
-        // --- LOGIKA HALAMAN JEMBATAN (BLOB) ---
-        // Kita bikin HTML jembatan di dalam variabel agar tidak perlu file tambahan
+        // --- MANIPULASI JEMBATAN POLOS ---
+        // Kita bikin halaman jembatan yang bener-bener polos
         const bridgeHTML = `
             <html>
-            <head><title>Loading...</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-            <body onclick="go()" style="margin:0;height:100vh;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;font-family:sans-serif;">
-                <div style="text-align:center;">
-                    <div style="border:4px solid #f3f3f3;border-top:4px solid #000;border-radius:50%;width:30px;height:30px;animation:s 1s linear infinite;margin:0 auto 10px;"></div>
-                    <p style="color:#666;font-size:14px;">Klik di mana saja untuk melanjutkan...</p>
-                </div>
-                <style>@keyframes s { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }</style>
+            <body style="background:#fff;">
                 <script>
-                    function go() {
-                        localStorage.setItem('bridge_clicked', 'true');
-                        window.open('${ADS[0]}', '_blank');
-                        setTimeout(() => { window.location.href = '${ADS[1]}'; }, 100);
-                    }
+                    // Redirect normal (bukan paksa)
+                    setTimeout(() => {
+                        window.location.href = "${ADS[1]}";
+                    }, 100);
                 <\/script>
             </body>
             </html>
@@ -65,31 +54,33 @@
         const bridgeBlob = new Blob([bridgeHTML], { type: 'text/html' });
         const bridgeUrl = URL.createObjectURL(bridgeBlob);
 
-        // --- LOGIKA UTAMA ---
-
-        function handleLinkClick(index, event) {
-            event.preventDefault();
+        // --- LOGIKA KLIK MANIPULASI ---
+        
+        function handleMouseDown(index) {
             const item = _0xStore[index];
             const originalUrl = atob(item.u);
             const linkId = 'state_' + btoa(originalUrl).substring(0, 15);
 
-            // Cek apakah iklan sudah diklik (menggunakan localStorage supaya sinkron antar tab)
-            if (localStorage.getItem(linkId) === 'done') {
-                // KLIK KEDUA: Buka link asli
-                openFinalLink(originalUrl);
-                localStorage.removeItem(linkId); // Reset biar bisa cuan lagi nanti
-            } else {
-                // KLIK PERTAMA: Buka Tab Jembatan
-                localStorage.setItem(linkId, 'done'); // Tandai link ini sudah dipicu
-                window.open(bridgeUrl, '_blank');
+            if (localStorage.getItem(linkId) !== 'done') {
+                // KLIK 1 (SAAT TEKAN): Buka Iklan 1
+                window.open(ADS[0], '_blank');
             }
         }
 
-        function openFinalLink(url) {
-            if (url.includes('pixeldrain.com/api/file/')) {
-                url = url.replace('/api/file/', '/u/');
+        function handleMouseUp(index) {
+            const item = _0xStore[index];
+            const originalUrl = atob(item.u);
+            const linkId = 'state_' + btoa(originalUrl).substring(0, 15);
+
+            if (localStorage.getItem(linkId) === 'done') {
+                // KLIK 2: Buka Link Asli (setelah dari iklan)
+                localStorage.removeItem(linkId);
+                window.open(originalUrl, '_blank');
+            } else {
+                // LANJUTAN KLIK 1 (SAAT LEPAS): Buka Jembatan Polos
+                localStorage.setItem(linkId, 'done');
+                window.open(bridgeUrl, '_blank');
             }
-            window.open(url, '_blank');
         }
 
         // --- FUNGSI STANDAR ---
@@ -101,7 +92,9 @@
             _0xStore = [];
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xStore.push({ u: btoa(url) });
-                return `<span class="link-blue" onclick="handleLinkClick(${_0xStore.length-1}, event)">${url}</span>`;
+                let idx = _0xStore.length - 1;
+                // Pakai mousedown & mouseup buat misahin trigger biar gak keblokir Chrome
+                return `<span class="link-blue" onmousedown="handleMouseDown(${idx})" onmouseup="handleMouseUp(${idx})">${url}</span>`;
             });
         }
 
@@ -123,12 +116,6 @@
             const data = await res.json();
             document.getElementById('result-url').value = window.location.origin + '/' + data.id;
             document.getElementById('result-box').style.display = 'block';
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("result-url");
-            copyText.select();
-            document.execCommand("copy");
         }
 
         init();
