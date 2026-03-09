@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Viewer</title>
+    <title>Secure Viewer Verification</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
@@ -12,18 +12,29 @@
         button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #333333; }
         
-        /* Link Polosan sesuai permintaan */
+        /* Link Polosan */
         .link-blue { 
             color: #0000ee; 
-            text-decoration: none; /* Tanpa garis bawah */
+            text-decoration: none; 
             word-break: break-all; 
             cursor: pointer; 
             font-weight: 500;
-            border: none; /* Tanpa garis titik-titik */
+            border: none; 
         }
-        .link-blue:hover {
-            color: #ff0000;
-            text-decoration: none;
+        .link-blue:hover { color: #ff0000; text-decoration: none; }
+
+        /* Style Captcha / Robot */
+        .captcha-btn {
+            display: inline-flex; align-items: center; justify-content: flex-start;
+            background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px;
+            border-radius: 3px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 16px; color: #333; transition: all 0.2s; width: 280px; margin: 0 auto;
+        }
+        .captcha-btn:hover { border-color: #b0b0b0; background: #fff; }
+        .captcha-box {
+            width: 26px; height: 26px; border: 2px solid #c1c1c1; border-radius: 2px;
+            margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center;
+            box-sizing: border-box; transition: all 0.2s;
         }
 
         #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
@@ -33,7 +44,32 @@
 <body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        <!-- MODE BUAT -->
+        
+        <!-- HALAMAN VERIFIKASI ROBOT -->
+        <div id="robot-mode" style="display: none; text-align: center; padding-top: 30px;">
+            <!-- Ikon Robot Profesional (SVG) -->
+            <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                <rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect>
+                <path d="M2 14h2"></path>
+                <path d="M20 14h2"></path>
+                <path d="M15 13v2"></path>
+                <path d="M9 13v2"></path>
+                <path d="M12 8V5"></path>
+                <circle cx="12" cy="3" r="2"></circle>
+            </svg>
+            <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
+            
+            <div class="captcha-btn" onclick="verifyRobot()">
+                <div class="captcha-box" id="c-box"></div>
+                <span style="font-weight: 500;">I'm not a robot</span>
+            </div>
+        </div>
+
+        <!-- MODE VIEW KONTEN -->
+        <div id="view-mode" style="display: none;"></div>
+
+        <!-- MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
@@ -42,36 +78,60 @@
                 <button id="btn-copy" onclick="copyLink()">Salin Link</button>
             </div>
         </div>
-
-        <!-- MODE VIEW -->
-        <div id="view-mode" style="display: none;"></div>
     </div>
 
     <script>
-        // DAFTAR IKLAN - Urut A, B, C...
-        const ADS = [
+        // DAFTAR IKLAN (Cuma 2 sesuai aslinya)
+        const ADS =[
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
-            "https://omg10.com/4/10390860",
-            "https://shope.ee/iklan-urut-3",
-            "https://tokopedia.link/iklan-urut-4"
+            "https://omg10.com/4/10390860"
         ];
 
-        let _0xVault = []; // Tempat simpan link asli (RAM)
+        let _0xVault =[]; 
 
-        // 1. Fungsi Ambil Iklan Berurutan
+        // Mengambil iklan urut bergantian 1 dan 2
         function getNextAd() {
             let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
             let ad = ADS[ptr % ADS.length];
-            localStorage.setItem('_ad_pointer', ptr + 1); // Simpan posisi urutan ke memory browser
+            localStorage.setItem('_ad_pointer', ptr + 1);
             return ad;
         }
 
-        // 2. SMART MASKING (Acak Path & Parameter)
+        // ==========================================
+        // 1. SISTEM ROBOT CAPTCHA
+        // ==========================================
+        function verifyRobot() {
+            const path = window.location.pathname.split('/').filter(p => p).pop();
+            const box = document.getElementById('c-box');
+            
+            // Animasi ceklis hijau
+            box.style.borderColor = '#28a745';
+            box.style.backgroundColor = '#28a745';
+            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            
+            setTimeout(() => {
+                // Simpan status bahwa user sudah lolos robot (berlaku 1 jam)
+                localStorage.setItem('robot_pass_' + path, Date.now());
+                
+                // Buka konten asli di tab baru
+                const newTab = window.open(window.location.href, '_blank');
+                
+                if (newTab) {
+                    // Jika tab baru berhasil terbuka, TAB LAMA JADI IKLAN
+                    window.location.href = getNextAd();
+                } else {
+                    // Jika kena popup blocker browser, reload saja agar pindah ke halaman konten
+                    window.location.reload();
+                }
+            }, 600); // Jeda 0.6 detik biar animasinya keliatan
+        }
+
+        // ==========================================
+        // 2. SMART MASKING
+        // ==========================================
         function universalMask(url) {
             try {
                 let u = new URL(url);
-                
-                // Acak Kode di Path (misal: /u/KODE)
                 let newPath = u.pathname.split('/').map(part => {
                     if (part.length > 5 && /[0-9]/.test(part)) {
                         let ext = part.includes('.') ? '.' + part.split('.').pop() : '';
@@ -80,38 +140,35 @@
                     return part;
                 }).join('/');
 
-                // Acak Kode di Parameter (misal: ?id=KODE atau ?v=KODE)
                 let params = new URLSearchParams(u.search);
                 params.forEach((value, key) => {
-                    if (value.length > 4) { // Jika isi parameter lebih dari 4 karakter, acak!
-                        params.set(key, Math.random().toString(36).substring(2, 11));
-                    }
+                    if (value.length > 4) params.set(key, Math.random().toString(36).substring(2, 11));
                 });
 
                 let searchStr = params.toString() ? '?' + params.toString() : '';
                 return u.origin + newPath + searchStr;
-            } catch (e) {
-                return url;
-            }
+            } catch (e) { return url; }
         }
 
-        // 3. Render Teks
         function renderText(text) {
+            document.getElementById('robot-mode').style.display = 'none';
             document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
 
             _0xVault = [];
             const processedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
-                _0xVault.push(btoa(url)); // Link asli aman di Base64 RAM
+                _0xVault.push(btoa(url)); 
                 let id = _0xVault.length - 1;
-                let cleanDisplay = universalMask(url); // Tampilan polosan & kode acak
+                let cleanDisplay = universalMask(url); 
                 return `<span class="link-blue" onclick="handleAdSystem(${id}, event)">${cleanDisplay}</span>`;
             });
             viewDiv.innerHTML = processedText;
         }
 
-        // 4. LOGIKA IKLAN AGRESIF (Tab Baru + Ganti Tab Lama)
+        // ==========================================
+        // 3. LOGIKA IKLAN AGRESIF
+        // ==========================================
         function handleAdSystem(id, event) {
             event.preventDefault();
             const realLink = atob(_0xVault[id]);
@@ -119,35 +176,27 @@
             const step = sessionStorage.getItem(clickToken);
 
             if (!step) {
-                // --- KLIK 1: Iklan di Tab Baru & Tab Lama ---
+                // KLIK 1: Tab Baru (Iklan) & Tab Lama (Iklan)
                 sessionStorage.setItem(clickToken, 'step2');
-                
-                // Buka Iklan di tab baru
                 const adWin = window.open(getNextAd(), '_blank');
                 if (adWin) { adWin.blur(); window.focus(); }
 
-                // Ganti tab lama (halaman ini) jadi iklan juga
-                setTimeout(() => {
-                    window.location.href = getNextAd();
-                }, 150);
+                setTimeout(() => { window.location.href = getNextAd(); }, 150);
             } else {
-                // --- KLIK 2: Link Asli di Tab Baru & Tab Lama Jadi Iklan ---
+                // KLIK 2: Tab Baru (Link Asli) & Tab Lama (Iklan)
                 sessionStorage.removeItem(clickToken);
-
-                // Buka Link Asli
                 let finalTarget = realLink;
                 if (finalTarget.includes('pixeldrain.com/api/file/')) finalTarget = finalTarget.replace('/api/file/', '/u/');
                 
                 window.open(finalTarget, '_blank');
 
-                // Ganti tab lama (halaman ini) jadi iklan penutup
-                setTimeout(() => {
-                    window.location.href = getNextAd();
-                }, 150);
+                setTimeout(() => { window.location.href = getNextAd(); }, 150);
             }
         }
 
-        // --- SISTEM PEMBUAT (Standard) ---
+        // ==========================================
+        // 4. SISTEM INIT & BUAT LINK
+        // ==========================================
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             if (!text) return;
@@ -175,13 +224,25 @@
 
         async function init() {
             const path = window.location.pathname.split('/').filter(p => p).pop();
+            
             if (path && path !== 'index.html') {
-                try {
-                    const res = await fetch('/api/get/' + path);
-                    const data = await res.json();
-                    renderText(data.content);
-                } catch (e) { document.getElementById('create-mode').style.display = 'block'; }
-            } else { document.getElementById('create-mode').style.display = 'block'; }
+                let passTime = localStorage.getItem('robot_pass_' + path);
+                let isPassed = passTime && (Date.now() - parseInt(passTime) < 3600000);
+
+                if (!isPassed) {
+                    document.getElementById('robot-mode').style.display = 'block';
+                } else {
+                    try {
+                        const res = await fetch('/api/get/' + path);
+                        const data = await res.json();
+                        renderText(data.content);
+                    } catch (e) { 
+                        document.getElementById('create-mode').style.display = 'block'; 
+                    }
+                }
+            } else {
+                document.getElementById('create-mode').style.display = 'block'; 
+            }
         }
 
         init();
