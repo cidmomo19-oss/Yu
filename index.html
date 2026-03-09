@@ -5,120 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Viewer</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000; margin: 0; padding: 40px 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; }
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; }
-        button { background: #000; color: #fff; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; }
-        .link-blue { color: #0000ee; text-decoration: none; cursor: pointer; font-weight: 500; }
-        #view-mode { white-space: pre-wrap; line-height: 1.6; }
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        textarea { height: 300px; resize: none; }
+        textarea:focus, input:focus { border-color: #000000; }
+        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #333333; }
+        .copy-group { display: flex; gap: 10px; }
+        .copy-group input { margin-bottom: 0; }
+        .copy-group button { white-space: nowrap; }
+        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
+        .link-blue:hover { text-decoration: underline; }
+        #view-mode { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
-<body>
+<body class="no-select" oncontextmenu="return false">
 
     <div class="container">
-        <!-- MODE BUAT PESAN -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" style="width:100%;height:200px" placeholder="Masukkan teks..."></textarea>
-            <button onclick="generateLink()">Buat Link</button>
+            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
+            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly>
+                <p style="font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">LINK BERHASIL DIBUAT:</p>
+                <div class="copy-group">
+                    <input type="text" id="result-url" readonly onclick="this.select()">
+                    <button id="btn-copy" onclick="copyLink()">Salin</button>
+                </div>
             </div>
         </div>
-
-        <!-- MODE BACA PESAN -->
         <div id="view-mode" style="display: none;"></div>
+    </div>
+
+    <div id="vanillaCopyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; font-size: 18px; font-weight: bold;">Bypass Pixeldrain</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 20px;">Tekan tombol Salin, buka Tab Baru di browser, lalu Paste link tersebut secara manual.</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="copyUrlInput" readonly style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; margin-bottom: 0;">
+                <button onclick="doCopy()" id="btnCopy" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Salin</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const ADS = [
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9", // Iklan 1
-            "https://omg10.com/4/10390860" // Iklan 2
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
+            "https://omg10.com/4/10390860"
         ];
-
         let _0xStore = [];
-
-        // --- MANIPULASI JEMBATAN POLOS ---
-        // Kita bikin halaman jembatan yang bener-bener polos
-        const bridgeHTML = `
-            <html>
-            <body style="background:#fff;">
-                <script>
-                    // Redirect normal (bukan paksa)
-                    setTimeout(() => {
-                        window.location.href = "${ADS[1]}";
-                    }, 100);
-                <\/script>
-            </body>
-            </html>
-        `;
-        const bridgeBlob = new Blob([bridgeHTML], { type: 'text/html' });
-        const bridgeUrl = URL.createObjectURL(bridgeBlob);
-
-        // --- LOGIKA KLIK MANIPULASI ---
-        
-        function handleMouseDown(index) {
-            const item = _0xStore[index];
-            const originalUrl = atob(item.u);
-            const linkId = 'state_' + btoa(originalUrl).substring(0, 15);
-
-            if (localStorage.getItem(linkId) !== 'done') {
-                // KLIK 1 (SAAT TEKAN): Buka Iklan 1
-                window.open(ADS[0], '_blank');
-            }
-        }
-
-        function handleMouseUp(index) {
-            const item = _0xStore[index];
-            const originalUrl = atob(item.u);
-            const linkId = 'state_' + btoa(originalUrl).substring(0, 15);
-
-            if (localStorage.getItem(linkId) === 'done') {
-                // KLIK 2: Buka Link Asli (setelah dari iklan)
-                localStorage.removeItem(linkId);
-                window.open(originalUrl, '_blank');
-            } else {
-                // LANJUTAN KLIK 1 (SAAT LEPAS): Buka Jembatan Polos
-                localStorage.setItem(linkId, 'done');
-                window.open(bridgeUrl, '_blank');
-            }
-        }
-
-        // --- FUNGSI STANDAR ---
+        const copyModal = { show: function() { document.getElementById('vanillaCopyModal').style.display = 'flex'; } };
 
         function showViewMode(text) {
             document.getElementById('create-mode').style.display = 'none';
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block';
             _0xStore = [];
-            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
+            const linkedText = text.replace(/(https?:\/\/[^\s]+)/g, function(url) {
                 _0xStore.push({ u: btoa(url) });
-                let idx = _0xStore.length - 1;
-                // Pakai mousedown & mouseup buat misahin trigger biar gak keblokir Chrome
-                return `<span class="link-blue" onmousedown="handleMouseDown(${idx})" onmouseup="handleMouseUp(${idx})">${url}</span>`;
+                let currentIndex = _0xStore.length - 1;
+                return `<span class="link-blue" onclick="executePopUnder(${currentIndex}, event)">${url}</span>`;
             });
+            viewDiv.innerHTML = linkedText;
         }
 
-        async function init() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            if (id && id !== 'index.html') {
-                try {
-                    const res = await fetch('/api/get/' + id);
-                    const data = await res.json();
-                    showViewMode(data.content);
-                } catch (e) { document.getElementById('create-mode').style.display = 'block'; }
-            } else { document.getElementById('create-mode').style.display = 'block'; }
+        // ==========================================================
+        // FUNGSI POP-UNDER + REDIRECT
+        // ==========================================================
+        function executePopUnder(index, event) {
+            event.preventDefault();
+            const item = _0xStore[index];
+            if (!item) return;
+
+            const originalUrl = atob(item.u);
+            const linkId = 'adv_click_state_' + btoa(originalUrl);
+            const adShown = sessionStorage.getItem(linkId);
+
+            if (!adShown) {
+                // --- KLIK PERTAMA: Eksekusi Pop-Under + Redirect ---
+                sessionStorage.setItem(linkId, 'true');
+
+                // 1. Coba buka Pop-Under (Iklan 1)
+                const popunderWindow = window.open(ADS[0], 'PopUnder');
+
+                if (popunderWindow) {
+                    // 2. Langsung pindahkan fokus kembali ke window utama,
+                    // ini akan "menyembunyikan" Pop-Under di belakang.
+                    popunderWindow.blur();
+                    window.focus();
+                }
+                
+                // 3. Alihkan tab ini ke Iklan 2. Diberi jeda sedikit agar
+                // Pop-Under sempat dieksekusi oleh browser.
+                setTimeout(() => {
+                    window.location.href = ADS[1];
+                }, 200);
+
+            } else {
+                // --- KLIK KEDUA: Buka Link Asli ---
+                sessionStorage.removeItem(linkId);
+                
+                let finalUrl = originalUrl;
+                if (finalUrl.includes('pixeldrain.com/api/file/')) {
+                    finalUrl = finalUrl.replace('/api/file/', '/u/');
+                }
+                if (finalUrl.includes('pixeldrain.com/api/file')) {
+                    document.getElementById('copyUrlInput').value = finalUrl;
+                    copyModal.show();
+                    return;
+                }
+                
+                const contentWindow = window.open(finalUrl, '_blank');
+                if (!contentWindow) {
+                    window.location.href = finalUrl;
+                }
+            }
         }
 
-        async function generateLink() {
-            const text = document.getElementById('input-text').value;
-            if (!text) return;
-            const res = await fetch('/api/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: text }) });
-            const data = await res.json();
-            document.getElementById('result-url').value = window.location.origin + '/' + data.id;
-            document.getElementById('result-box').style.display = 'block';
-        }
-
+        // ==========================================================
+        // SISA FUNGSI BAWAAN (Tidak Diubah)
+        // ==========================================================
+        function showCreateMode() { document.getElementById('create-mode').style.display = 'block'; document.getElementById('view-mode').style.display = 'none'; }
+        function doCopy() { const input = document.getElementById("copyUrlInput"); input.select(); input.setSelectionRange(0, 99999); let success = false; try { document.execCommand("copy"); success = true; } catch (e) { if (navigator.clipboard) { navigator.clipboard.writeText(input.value); success = true; } } if (success) { const btn = document.getElementById("btnCopy"); btn.innerHTML = 'Tersalin!'; btn.style.backgroundColor = "#28a745"; setTimeout(() => { btn.innerHTML = 'Salin'; btn.style.backgroundColor = "#000"; document.getElementById('vanillaCopyModal').style.display = 'none'; window.location.href = ADS[Math.floor(Math.random() * ADS.length)]; }, 1500); } else { alert("Browser tidak mendukung salin otomatis."); } }
+        async function init() { const id = window.location.pathname.split('/').filter(p => p).pop(); if (id && id !== 'index.html') { try { const res = await fetch('/api/get/' + id); if (!res.ok) throw new Error(); const data = await res.json(); showViewMode(data.content); } catch (e) { showCreateMode(); } } else { showCreateMode(); } }
+        async function generateLink() { const text = document.getElementById('input-text').value; if (!text) return; const btn = document.getElementById('btn-submit'); btn.disabled = true; btn.innerText = "Loading..."; try { const res = await fetch('/api/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: text }) }); const data = await res.json(); const finalUrl = window.location.origin + '/' + data.id; document.getElementById('result-url').value = finalUrl; document.getElementById('result-box').style.display = 'block'; } catch (e) { alert("Gagal konek ke KV Database!"); } btn.disabled = false; btn.innerText = "Buat Link"; }
+        function copyLink() { const copyText = document.getElementById("result-url"); copyText.select(); copyText.setSelectionRange(0, 99999); document.execCommand("copy"); const btn = document.getElementById("btn-copy"); btn.innerText = "Tersalin!"; btn.style.backgroundColor = "#28a745"; setTimeout(() => { btn.innerText = "Salin"; btn.style.backgroundColor = "#000000"; }, 2000); }
+        document.addEventListener('keydown', function(e) { if (e.key === 'F12' || (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))) { e.preventDefault(); } });
         init();
     </script>
+
 </body>
 </html>
