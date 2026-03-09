@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Content Viewer</title>
-    <!-- Library AES -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; text-align: center; }
@@ -94,7 +92,6 @@
         ];
         let _0xVault =[]; 
         let _pageData = null;
-        let _curId = "";
 
         function getNextAd() {
             let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
@@ -109,11 +106,15 @@
             });
         }
 
-        // --- SISTEM PROGRESI ---
+        // ==========================================
+        // ALUR UTAMA & PROGRESI HALAMAN
+        // ==========================================
         function runProgressionChecks(id) {
             hideAllModes();
+            
+            // 1. Cek Robot
             const robotPassTime = localStorage.getItem('robot_pass_' + id);
-            const isRobotPassed = robotPassTime && (Date.now() - parseInt(robotPassTime) < 3600000);
+            const isRobotPassed = robotPassTime && (Date.now() - parseInt(robotPassTime) < 3600000); // 1 Jam
             if (!isRobotPassed) {
                 document.getElementById('robot-mode').style.display = 'block';
                 if (sessionStorage.getItem('robot_state_' + id) === 'spinning') {
@@ -122,21 +123,29 @@
                 }
                 return;
             }
-            if (_pageData.password && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
+
+            // 2. Cek Password
+            const hasPassword = _pageData.password && _pageData.password.trim() !== "";
+            if (hasPassword && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
                 document.getElementById('password-mode').style.display = 'block';
                 return;
             }
+            
+            // 3. Lolos Semua -> LANGSUNG Tampilkan Konten
             renderText(_pageData.content);
         }
 
-        // --- ROBOT & PASSWORD ---
+        // ==========================================
+        // FUNGSI-FUNGSI JEBAKAN
+        // ==========================================
         function verifyRobotClick(event) {
             event.stopPropagation();
-            sessionStorage.setItem('robot_state_' + _curId, 'spinning');
-            const nt = window.open(window.location.href, '_blank');
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            sessionStorage.setItem('robot_state_' + id, 'spinning');
+            const newTab = window.open(window.location.href, '_blank');
             showSpinnerVisual();
-            if (nt) setTimeout(() => window.location.href = getNextAd(), 1500);
-            else setTimeout(finishSpinnerAndShowContinue, 1500);
+            if (newTab) { setTimeout(() => { window.location.href = getNextAd(); }, 1500); } 
+            else { setTimeout(finishSpinnerAndShowContinue, 1500); }
         }
 
         function showSpinnerVisual() {
@@ -153,96 +162,103 @@
         }
 
         function continueToNextPhase() {
-            localStorage.setItem('robot_pass_' + _curId, Date.now());
-            sessionStorage.removeItem('robot_state_' + _curId); 
-            const nt = window.open(window.location.href, '_blank');
-            if (nt) window.location.href = getNextAd(); else window.location.reload();
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            localStorage.setItem('robot_pass_' + id, Date.now());
+            sessionStorage.removeItem('robot_state_' + id); 
+            const nextTab = window.open(window.location.href, '_blank');
+            if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
         }
 
         function handlePwdClick() {
-            if (!sessionStorage.getItem('pwd_clicked_' + _curId)) {
-                sessionStorage.setItem('pwd_clicked_' + _curId, 'true');
-                const nt = window.open(window.location.href, '_blank');
-                if (nt) window.location.href = getNextAd();
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            if (!sessionStorage.getItem('pwd_clicked_' + id)) {
+                sessionStorage.setItem('pwd_clicked_' + id, 'true');
+                const newTab = window.open(window.location.href, '_blank');
+                if (newTab) { window.location.href = getNextAd(); }
             }
         }
 
         function submitPassword() {
-            if (document.getElementById('pwd-input').value === _pageData.password) {
-                localStorage.setItem('pwd_pass_' + _curId, _pageData.password);
-                const nt = window.open(window.location.href, '_blank');
-                if (nt) window.location.href = getNextAd(); else window.location.reload();
-            } else { document.getElementById('pwd-error').style.display = 'block'; }
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            const pwdInput = document.getElementById('pwd-input').value;
+            if (pwdInput !== _pageData.password) {
+                document.getElementById('pwd-error').style.display = 'block';
+            } else {
+                localStorage.setItem('pwd_pass_' + id, _pageData.password);
+                const nextTab = window.open(window.location.href, '_blank');
+                if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
+            }
         }
 
-        // --- MASKING & AES ENCRYPT ---
+        // ==========================================
+        // SISTEM KONTEN & LINK
+        // ==========================================
         function universalMask(url) {
             try {
                 let u = new URL(url);
-                let np = u.pathname.split('/').map(p => (p.length > 5 && /[0-9]/.test(p)) ? Math.random().toString(36).substring(2, 10) : p).join('/');
-                return u.origin + np + (u.search ? '?' + Math.random().toString(36).substring(2, 8) : '');
+                let newPath = u.pathname.split('/').map(part => (part.length > 5 && /[0-9]/.test(part)) ? (Math.random().toString(36).substring(2, 10) + (part.includes('.') ? '.' + part.split('.').pop() : '')) : part).join('/');
+                let params = new URLSearchParams(u.search);
+                params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
+                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
             } catch (e) { return url; }
         }
 
         function renderText(text) {
-            const div = document.getElementById('view-mode'); div.style.display = 'block';
-            _0xVault = [];
-            div.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                _0xVault.push(url);
+            const viewDiv = document.getElementById('view-mode');
+            viewDiv.style.display = 'block'; _0xVault = [];
+            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
+                _0xVault.push(btoa(url));
                 return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
             });
         }
 
         function handleAdSystem(id, event) {
             event.preventDefault();
-            const realLink = _0xVault[id];
-            const token = 'click_' + btoa(realLink).substring(0, 12);
-            if (!sessionStorage.getItem(token)) {
-                sessionStorage.setItem(token, 'step2');
+            const realLink = atob(_0xVault[id]);
+            const clickToken = 'click_' + btoa(realLink).substring(0, 12);
+            if (!sessionStorage.getItem(clickToken)) {
+                sessionStorage.setItem(clickToken, 'step2');
                 const adWin = window.open(getNextAd(), '_blank');
                 if (adWin) { adWin.blur(); window.focus(); }
-                setTimeout(() => window.location.href = getNextAd(), 150);
+                setTimeout(() => { window.location.href = getNextAd(); }, 150);
             } else {
-                sessionStorage.removeItem(token);
-                // ENKRIPSI AES SEBELUM PINDAH KE HALAMAN LANJUTKAN
-                const encrypted = CryptoJS.AES.encrypt(realLink, _pageData.secret).toString();
-                const contUrl = `${window.location.origin}/lanjutkan?id=${_curId}#${encodeURIComponent(encrypted)}`;
-                const nt = window.open(contUrl, '_blank');
-                if (nt) window.location.href = getNextAd(); else window.location.href = contUrl;
+                sessionStorage.removeItem(clickToken);
+                const continueUrl = `${window.location.origin}/lanjutkan#${btoa(realLink)}`;
+                const nextTab = window.open(continueUrl, '_blank');
+                if (nextTab) { window.location.href = getNextAd(); } else { window.location.href = continueUrl; }
             }
         }
         
-        // --- FINAL DECRYPT ---
-        async function openFinalLink() {
-            const id = new URLSearchParams(window.location.search).get('id');
-            const encryptedData = decodeURIComponent(window.location.hash.substring(1));
-            try {
-                // AMBIL SECRET DARI KV (Safe Place) UNTUK DEKRIPSI
-                const res = await fetch('/api/get/' + id);
-                const db = await res.json();
-                const bytes = CryptoJS.AES.decrypt(encryptedData, db.secret);
-                const original = bytes.toString(CryptoJS.enc.Utf8);
-                if (original) {
-                    window.open(original, '_blank');
-                    window.location.href = getNextAd();
-                }
-            } catch (e) { alert("Error!"); }
+        function openFinalLink() {
+            const realUrl = atob(window.location.hash.substring(1));
+            window.open(realUrl, '_blank');
+            window.location.href = getNextAd();
         }
 
+        // ==========================================
+        // INISIALISASI & ROUTING UTAMA
+        // ==========================================
         async function init() {
             const path = window.location.pathname;
             if (path.startsWith('/lanjutkan')) {
                 hideAllModes(); document.getElementById('continue-to-link-mode').style.display = 'block';
                 return;
             }
-            _curId = path.split('/').filter(p => p).pop();
-            if (_curId && _curId !== 'index.html' && _curId !== 'lanjutkan') {
+
+            const id = path.split('/').filter(p => p).pop();
+            if (id && id !== 'index.html' && id !== 'lanjutkan') {
                 try {
-                    const res = await fetch('/api/get/' + _curId);
+                    const res = await fetch('/api/get/' + id);
+                    if (!res.ok) throw new Error("Not found");
                     _pageData = await res.json();
-                    runProgressionChecks(_curId);
-                } catch (e) { hideAllModes(); document.getElementById('create-mode').style.display = 'block'; }
-            } else { hideAllModes(); document.getElementById('create-mode').style.display = 'block'; }
+                    if(!_pageData.content) throw new Error("Content empty");
+                    runProgressionChecks(id);
+                } catch (e) {
+                    hideAllModes(); document.getElementById('create-mode').style.display = 'block';
+                }
+            } else {
+                hideAllModes(); document.getElementById('create-mode').style.display = 'block';
+            }
         }
 
         async function generateLink() {
@@ -253,7 +269,8 @@
             btn.disabled = true; btn.innerText = "Processing...";
             try {
                 const res = await fetch('/api/create', {
-                    method: 'POST', body: JSON.stringify({ content: text, password: pwd })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: text, password: pwd })
                 });
                 const data = await res.json();
                 document.getElementById('result-url').value = window.location.origin + '/' + data.id;
@@ -263,7 +280,8 @@
         }
 
         function copyLink() {
-            const input = document.getElementById("result-url"); input.select(); document.execCommand("copy");
+            const copyText = document.getElementById("result-url");
+            copyText.select(); document.execCommand("copy");
             document.getElementById("btn-copy").innerText = "Tersalin!";
             setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
         }
