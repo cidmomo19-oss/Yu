@@ -3,34 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Content Viewer</title>
+    <title>Sistem Keamanan Tautan</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
-        .container { max-width: 600px; margin: 0 auto; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 40px 20px; }
+        .container { max-width: 550px; margin: 0 auto; text-align: center; background: #ffffff; padding: 35px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid #eaeaea; }
         
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
-        textarea:focus, input:focus { border-color: #007bff; }
+        /* FORM CREATE */
+        textarea, input[type="text"] { width: 100%; box-sizing: border-box; padding: 14px; font-size: 15px; border: 1px solid #dce1e6; border-radius: 6px; outline: none; margin-bottom: 15px; font-family: inherit; background: #fdfdfd; transition: border-color 0.2s; }
+        textarea:focus, input[type="text"]:focus { border-color: #0066ff; background: #fff; }
+        textarea { height: 120px; resize: none; }
         
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
-        button:hover { background-color: #333333; }
+        .main-btn { background-color: #0f141e; color: #ffffff; border: none; padding: 14px 24px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
+        .main-btn:hover { background-color: #2c3340; }
         
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
-        .link-blue:hover { color: #ff0000; }
+        .link-blue { color: #0066ff; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; border-bottom: 1px dashed #0066ff; }
+        .link-blue:hover { color: #ff0000; border-bottom-color: #ff0000; }
 
-        .captcha-btn { display: inline-flex; align-items: center; background: #fafafa; border: 1px solid #dcdcdc; padding: 15px 20px; border-radius: 3px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 16px; color: #333; width: 280px; margin: 0 auto; }
-        .captcha-box { width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; transition: all 0.2s; }
-        .captcha-box:hover { border-color: #888; }
+        /* PROFESSIONAL SUB2UNLOCK */
+        .header-icon { margin-bottom: 15px; color: #0f141e; }
+        .task-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         
-        @keyframes spin-anim { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .spinner-icon { width: 18px; height: 18px; border: 3px solid #e0e0e0; border-top: 3px solid #0056b3; border-radius: 50%; animation: spin-anim 1s linear infinite; }
+        .task-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; border-radius: 6px; border: 1px solid transparent; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+        .task-btn svg { flex-shrink: 0; }
         
-        #continue-btn { display: none; margin: 25px auto 0; background-color: #007bff; color: #fff; width: auto; }
-        #continue-btn:hover { background-color: #0056b3; }
+        .task-btn.yt { background-color: #e52d27; }
+        .task-btn.yt:hover { background-color: #cc221d; transform: translateY(-2px); }
+        
+        .task-btn.wa { background-color: #25D366; }
+        .task-btn.wa:hover { background-color: #20bd5a; transform: translateY(-2px); }
+        
+        .task-btn.done { background-color: #f0f2f5; border-color: #e4e7eb; color: #8792a2; cursor: not-allowed; box-shadow: none; transform: translateY(0); pointer-events: none; }
+        .task-btn.done .done-icon { color: #10b981; }
 
-        .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
+        .unlock-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: 6px; border: none; font-size: 15px; font-weight: 700; transition: 0.3s; }
+        .unlock-btn.locked { background-color: #e4e7eb; color: #8792a2; cursor: not-allowed; }
+        .unlock-btn.unlocked { background-color: #10b981; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .unlock-btn.unlocked:hover { background-color: #0ea5e9; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3); }
 
-        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        /* ROBOT & PASSWORD (CLEANED UP) */
+        .captcha-btn { display: inline-flex; align-items: center; background: #fff; border: 1px solid #dce1e6; padding: 14px 20px; border-radius: 4px; font-size: 15px; color: #333; width: 260px; margin: 0 auto; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s; }
+        .captcha-btn:hover { border-color: #bac2cc; }
+        .captcha-box { width: 26px; height: 26px; border: 2px solid #bac2cc; border-radius: 3px; margin-right: 15px; background: #fff; display: flex; align-items: center; justify-content: center; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spinner-icon { width: 16px; height: 16px; border: 3px solid #f3f3f3; border-top: 3px solid #0066ff; border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        .error-msg { color: #e52d27; font-size: 13px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 600; text-align: left; }
+        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; color: #1a1a1a; }
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
@@ -38,50 +57,91 @@
 
     <div class="container">
         
-        <!-- 1. MODE BUAT LINK -->
+        <!-- 1. MODE CREATE -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <svg class="header-icon" viewBox="0 0 24 24" width="45" height="45" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            <h2 style="margin-top: 5px; font-size: 22px;">Amankan Tautan</h2>
+            
+            <textarea id="input-text" placeholder="Masukkan teks & tautan asli di sini..."></textarea>
+            <input type="text" id="input-password" placeholder="Password (Opsional)" autocomplete="off">
+            
+            <label style="display: flex; align-items: center; text-align: left; margin-bottom: 25px; font-size: 14px; cursor: pointer; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <input type="checkbox" id="check-sub2unlock" style="width: 18px; height: 18px; margin-right: 12px; cursor: pointer;">
+                Aktifkan Misi Sponsor (YouTube & WA)
+            </label>
+
+            <button class="main-btn" onclick="generateLink()" id="btn-submit">Buat Tautan</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
+                <input type="text" id="result-url" readonly onclick="this.select()" style="margin-bottom: 10px; font-weight: 500; color: #0066ff;">
+                <button class="main-btn" id="btn-copy" onclick="copyLink()">Salin Tautan</button>
             </div>
         </div>
 
-        <!-- 2. HALAMAN VERIFIKASI ROBOT -->
+        <!-- 2. MODE SUB2UNLOCK (PROFESSIONAL UI) -->
+        <div id="sub2unlock-mode" style="display: none;">
+            <svg class="header-icon" viewBox="0 0 24 24" width="50" height="50" stroke="currentColor" stroke-width="1.5" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <h2 style="margin-top: 0; font-size: 22px; font-weight: 700;">Akses Dibatasi</h2>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 30px;">Tautan ini dilindungi. Harap selesaikan misi sponsor di bawah ini untuk melanjutkan.</p>
+            
+            <div class="task-container">
+                <!-- Tombol 1: YouTube Video -->
+                <button id="btn-like" class="task-btn yt" onclick="doSubTask('like', 'https://youtu.be/b6y3eToHOeM?si=OrsvWqQVy6nKHwia', 'btn-like')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    <span>Tonton Video YouTube</span>
+                </button>
+                
+                <!-- Tombol 2: YouTube Subscribe -->
+                <button id="btn-sub" class="task-btn yt" onclick="doSubTask('sub', 'https://www.youtube.com/@seputarlinkvidey?sub_confirmation=1', 'btn-sub')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    <span>Subscribe Channel</span>
+                </button>
+                
+                <!-- Tombol 3: WhatsApp -->
+                <button id="btn-wa" class="task-btn wa" onclick="doSubTask('wa', 'https://whatsapp.com/channel/0029Vb6hCJ7CBtxHIx0Xyc0N', 'btn-wa')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    <span>Gabung Saluran WhatsApp</span>
+                </button>
+            </div>
+            
+            <button id="btn-unlock" class="unlock-btn locked" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                Menunggu Verifikasi (0/3)
+            </button>
+        </div>
+
+        <!-- 3. HALAMAN ROBOT VERIFICATION -->
         <div id="robot-mode" style="display: none;">
-            <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 8V5"></path><circle cx="12" cy="3" r="2"></circle></svg>
-            <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
-            <div class="captcha-btn" id="captcha-wrap">
-                <div class="captcha-box" id="c-box" onclick="verifyRobotClick(event)"></div>
-                <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
+            <svg class="header-icon" viewBox="0 0 24 24" width="50" height="50" stroke="currentColor" stroke-width="1.5" fill="none"><rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 8V5"></path><circle cx="12" cy="3" r="2"></circle></svg>
+            <h2 style="margin-top: 0; font-size: 20px;">Pemeriksaan Keamanan</h2>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 25px;">Sistem kami perlu memverifikasi koneksi Anda.</p>
+            
+            <div class="captcha-btn" id="captcha-wrap" onclick="verifyRobotClick(event)">
+                <div class="captcha-box" id="c-box"></div>
+                <span style="font-weight: 500; user-select: none;">Saya bukan robot</span>
             </div>
-            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut ke Halaman</button>
+            <button class="main-btn" id="continue-btn" onclick="continueToNextPhase()" style="display: none; margin-top: 25px;">Lanjutkan Pemeriksaan</button>
         </div>
 
-        <!-- 3. HALAMAN PASSWORD -->
+        <!-- 4. HALAMAN PASSWORD -->
         <div id="password-mode" style="display: none;">
-            <div class="pwd-container">
-                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <h2 style="margin-top: 0; font-size: 20px; font-weight: 600;">Halaman Terkunci</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Masukkan password untuk melihat konten.</p>
-                <input type="text" id="pwd-input" placeholder="Ketik password di sini..." autocomplete="off" onfocus="handlePwdClick()">
-                <p class="error-msg" id="pwd-error">Password salah!</p>
-                <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
-            </div>
+            <svg class="header-icon" viewBox="0 0 24 24" width="50" height="50" stroke="currentColor" stroke-width="1.5" fill="none"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            <h2 style="margin-top: 0; font-size: 20px;">Otentikasi Tautan</h2>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Masukkan kata sandi yang valid untuk membuka dokumen.</p>
+            
+            <p class="error-msg" id="pwd-error">Kredensial tidak valid!</p>
+            <input type="text" id="pwd-input" placeholder="Masukkan password..." autocomplete="off" onfocus="handlePwdClick()">
+            <button class="main-btn" onclick="submitPassword()">Otentikasi Sekarang</button>
         </div>
         
-        <!-- 4. HALAMAN VIEW KONTEN -->
+        <!-- 5. HALAMAN KONTEN UTAMA -->
         <div id="view-mode" style="display: none;"></div>
 
-        <!-- 5. HALAMAN LANJUTKAN -->
-        <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
-             <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
-            <h2 style="margin-top: 10px; font-weight: 600;">Link Anda Siap</h2>
-            <p style="color: #666; margin-bottom: 30px;">Klik untuk melanjutkan ke tujuan akhir.</p>
-            <button id="lanjutkan-btn" onclick="openFinalLink()" style="width: auto; padding: 12px 40px; background-color: #28a745;">Lanjutkan</button>
+        <!-- 6. HALAMAN LANJUTKAN FINAL -->
+        <div id="continue-to-link-mode" style="display: none; padding-top: 20px;">
+             <svg class="header-icon" viewBox="0 0 24 24" width="60" height="60" stroke="#10b981" stroke-width="1.5" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+            <h2 style="margin-top: 10px; font-weight: 600;">Tautan Ditemukan</h2>
+            <p style="color: #64748b; margin-bottom: 30px; font-size: 14px;">Klik tombol di bawah ini untuk dialihkan ke tujuan akhir secara aman.</p>
+            <button class="main-btn" onclick="openFinalLink()" style="background-color: #10b981;">Buka Tautan</button>
         </div>
     </div>
 
@@ -100,21 +160,31 @@
             return ad;
         }
 
-        function hideAllModes() {
-            ['create-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
+        function hideAllModes() {['create-mode', 'sub2unlock-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
                 document.getElementById(id).style.display = 'none';
             });
         }
 
+        // Fix back button cache: memuat ulang saat user kembali dari YT/WA
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) { window.location.reload(); }
+        });
+
         // ==========================================
-        // ALUR UTAMA & PROGRESI HALAMAN
+        // ALUR & PROGRESI HALAMAN
         // ==========================================
         function runProgressionChecks(id) {
             hideAllModes();
             
-            // 1. Cek Robot
-            const robotPassTime = localStorage.getItem('robot_pass_' + id);
-            const isRobotPassed = robotPassTime && (Date.now() - parseInt(robotPassTime) < 3600000); // 1 Jam
+            // 1. Cek Sub2Unlock
+            if (_pageData.useSub2Unlock && !localStorage.getItem('sub_pass_' + id)) {
+                document.getElementById('sub2unlock-mode').style.display = 'block';
+                checkSub2UnlockStatus(id);
+                return;
+            }
+
+            // 2. Cek Robot
+            const isRobotPassed = localStorage.getItem('robot_pass_' + id) && (Date.now() - parseInt(localStorage.getItem('robot_pass_' + id)) < 3600000);
             if (!isRobotPassed) {
                 document.getElementById('robot-mode').style.display = 'block';
                 if (sessionStorage.getItem('robot_state_' + id) === 'spinning') {
@@ -124,19 +194,74 @@
                 return;
             }
 
-            // 2. Cek Password
+            // 3. Cek Password
             const hasPassword = _pageData.password && _pageData.password.trim() !== "";
             if (hasPassword && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
                 document.getElementById('password-mode').style.display = 'block';
                 return;
             }
             
-            // 3. Lolos Semua -> LANGSUNG Tampilkan Konten
+            // 4. Lolos Semua -> Tampilkan Konten
             renderText(_pageData.content);
         }
 
         // ==========================================
-        // FUNGSI-FUNGSI JEBAKAN
+        // LOGIKA SUB2UNLOCK PROFESIONAL
+        // ==========================================
+        function checkSub2UnlockStatus(id) {
+            let doneCount = 0;
+            const tasks =[
+                { id: 'like', btn: 'btn-like' },
+                { id: 'sub', btn: 'btn-sub' },
+                { id: 'wa', btn: 'btn-wa' }
+            ];
+
+            // Cek status masing-masing misi
+            tasks.forEach(task => {
+                if (sessionStorage.getItem(`task_${task.id}_${id}`)) {
+                    const btn = document.getElementById(task.btn);
+                    btn.classList.add('done');
+                    btn.onclick = null; // Matikan klik ganda
+                    btn.innerHTML = `<svg class="done-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Misi Selesai</span>`;
+                    doneCount++;
+                }
+            });
+            
+            // Update tombol utama di bawah
+            const finalBtn = document.getElementById('btn-unlock');
+            if (doneCount === 3) {
+                finalBtn.classList.remove('locked');
+                finalBtn.classList.add('unlocked');
+                finalBtn.disabled = false;
+                finalBtn.onclick = finishSub2Unlock;
+                finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg> Lanjutkan ke Tautan`;
+            } else {
+                finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Menunggu Verifikasi (${doneCount}/3)`;
+            }
+        }
+
+        function doSubTask(taskName, url, btnId) {
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            sessionStorage.setItem(`task_${taskName}_${id}`, 'true');
+            
+            const newTab = window.open(url, '_blank');
+            if (newTab) {
+                setTimeout(() => { window.location.href = getNextAd(); }, 1200);
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        function finishSub2Unlock() {
+            const id = window.location.pathname.split('/').filter(p => p).pop();
+            localStorage.setItem('sub_pass_' + id, 'true');
+            
+            const nextTab = window.open(window.location.href, '_blank');
+            if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
+        }
+
+        // ==========================================
+        // ROBOT & PASSWORD
         // ==========================================
         function verifyRobotClick(event) {
             event.stopPropagation();
@@ -150,14 +275,14 @@
 
         function showSpinnerVisual() {
             const box = document.getElementById('c-box');
-            box.style.border = 'none'; box.style.backgroundColor = 'transparent';
+            box.style.border = 'none'; box.style.background = 'transparent';
             box.innerHTML = '<div class="spinner-icon"></div>'; box.style.pointerEvents = 'none';
         }
 
         function finishSpinnerAndShowContinue() {
             const box = document.getElementById('c-box');
-            box.style.border = '2px solid #28a745'; box.style.backgroundColor = '#28a745';
-            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            box.style.border = '2px solid #10b981'; box.style.backgroundColor = '#10b981';
+            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
             document.getElementById('continue-btn').style.display = 'block';
         }
 
@@ -191,12 +316,12 @@
         }
 
         // ==========================================
-        // SISTEM KONTEN & LINK
+        // KONTEN & LINK HANDLING
         // ==========================================
         function universalMask(url) {
             try {
                 let u = new URL(url);
-                let newPath = u.pathname.split('/').map(part => (part.length > 5 && /[0-9]/.test(part)) ? (Math.random().toString(36).substring(2, 10) + (part.includes('.') ? '.' + part.split('.').pop() : '')) : part).join('/');
+                let newPath = u.pathname.split('/').map(p => (p.length > 5 && /[0-9]/.test(p)) ? (Math.random().toString(36).substring(2, 10) + (p.includes('.') ? '.' + p.split('.').pop() : '')) : p).join('/');
                 let params = new URLSearchParams(u.search);
                 params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
                 return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
@@ -205,7 +330,7 @@
 
         function renderText(text) {
             const viewDiv = document.getElementById('view-mode');
-            viewDiv.style.display = 'block'; _0xVault = [];
+            viewDiv.style.display = 'block'; _0xVault =[];
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
                 _0xVault.push(btoa(url));
                 return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
@@ -215,18 +340,9 @@
         function handleAdSystem(id, event) {
             event.preventDefault();
             const realLink = atob(_0xVault[id]);
-            const clickToken = 'click_' + btoa(realLink).substring(0, 12);
-            if (!sessionStorage.getItem(clickToken)) {
-                sessionStorage.setItem(clickToken, 'step2');
-                const adWin = window.open(getNextAd(), '_blank');
-                if (adWin) { adWin.blur(); window.focus(); }
-                setTimeout(() => { window.location.href = getNextAd(); }, 150);
-            } else {
-                sessionStorage.removeItem(clickToken);
-                const continueUrl = `${window.location.origin}/lanjutkan#${btoa(realLink)}`;
-                const nextTab = window.open(continueUrl, '_blank');
-                if (nextTab) { window.location.href = getNextAd(); } else { window.location.href = continueUrl; }
-            }
+            const continueUrl = `${window.location.origin}/lanjutkan#${btoa(realLink)}`;
+            const nextTab = window.open(continueUrl, '_blank');
+            if (nextTab) { window.location.href = getNextAd(); } else { window.location.href = continueUrl; }
         }
         
         function openFinalLink() {
@@ -236,7 +352,7 @@
         }
 
         // ==========================================
-        // INISIALISASI & ROUTING UTAMA
+        // INISIALISASI & API
         // ==========================================
         async function init() {
             const path = window.location.pathname;
@@ -264,26 +380,28 @@
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             const pwd = document.getElementById('input-password').value;
+            const useSub = document.getElementById('check-sub2unlock').checked;
+            
             if (!text) return;
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Processing...";
             try {
                 const res = await fetch('/api/create', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text, password: pwd })
+                    body: JSON.stringify({ content: text, password: pwd, useSub2Unlock: useSub })
                 });
                 const data = await res.json();
                 document.getElementById('result-url').value = window.location.origin + '/' + data.id;
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) { alert("Error!"); }
-            btn.disabled = false; btn.innerText = "Buat Link";
+            btn.disabled = false; btn.innerText = "Buat Tautan";
         }
 
         function copyLink() {
             const copyText = document.getElementById("result-url");
             copyText.select(); document.execCommand("copy");
             document.getElementById("btn-copy").innerText = "Tersalin!";
-            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
+            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Tautan"; }, 2000);
         }
 
         init();
