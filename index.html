@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Content Viewer</title>
-    <!-- Tambahan Library CryptoJS untuk Enkripsi AES -->
+    <!-- Library CryptoJS untuk Enkripsi AES -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
     <style>
@@ -35,7 +35,7 @@
         .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
 
-        /* STYLE KHUSUS SUB2UNLOCK (PROFESIONAL, NO EMOJI) */
+        /* STYLE KHUSUS SUB2UNLOCK */
         .task-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         .task-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; border-radius: 6px; border: 1px solid transparent; color: white; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .task-btn svg { flex-shrink: 0; }
@@ -182,6 +182,17 @@
             });
         }
 
+        // ==========================================
+        // SENSOR LAYAR (BIAR ANGKA VERIFIKASI LANGSUNG NAMBAH)
+        // ==========================================
+        window.addEventListener('focus', function() {
+            const path = window.location.pathname;
+            const id = path.split('/').filter(p => p).pop();
+            if (id && document.getElementById('sub2unlock-mode').style.display === 'block') {
+                checkSub2UnlockStatus(id);
+            }
+        });
+
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) { window.location.reload(); }
         });
@@ -222,7 +233,7 @@
         }
 
         // ==========================================
-        // LOGIKA SUB2UNLOCK (TANPA IKLAN DI TOMBOL MISI)
+        // LOGIKA SUB2UNLOCK (DENGAN SENSOR INSTAN)
         // ==========================================
         function checkSub2UnlockStatus(id) {
             let doneCount = 0;
@@ -231,22 +242,26 @@
             tasks.forEach(task => {
                 if (sessionStorage.getItem(`task_${task}_${id}`)) {
                     const btn = document.getElementById(`btn-${task}`);
-                    btn.classList.add('done');
-                    btn.onclick = null;
-                    btn.innerHTML = `<svg class="done-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Misi Selesai</span>`;
-                    doneCount++;
+                    if(btn) {
+                        btn.classList.add('done');
+                        btn.onclick = null;
+                        btn.innerHTML = `<svg class="done-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Misi Selesai</span>`;
+                        doneCount++;
+                    }
                 }
             });
             
             const finalBtn = document.getElementById('btn-unlock');
-            if (doneCount === 3) {
-                finalBtn.classList.remove('locked');
-                finalBtn.classList.add('unlocked');
-                finalBtn.disabled = false;
-                finalBtn.onclick = finishSub2Unlock;
-                finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg> Lanjutkan ke Tautan`;
-            } else {
-                finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Menunggu Verifikasi (${doneCount}/3)`;
+            if(finalBtn) {
+                if (doneCount === 3) {
+                    finalBtn.classList.remove('locked');
+                    finalBtn.classList.add('unlocked');
+                    finalBtn.disabled = false;
+                    finalBtn.onclick = finishSub2Unlock;
+                    finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg> Lanjutkan ke Tautan`;
+                } else {
+                    finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Menunggu Verifikasi (${doneCount}/3)`;
+                }
             }
         }
 
@@ -256,6 +271,11 @@
             
             // HANYA BUKA LINK, TIDAK ADA IKLAN DI SINI
             window.open(url, '_blank');
+            
+            // Update sensor seketika (kasih jeda 0.5 dtk buat sensasi mengecek)
+            setTimeout(() => {
+                checkSub2UnlockStatus(id);
+            }, 500);
         }
 
         function finishSub2Unlock() {
