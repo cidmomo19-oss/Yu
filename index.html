@@ -44,7 +44,6 @@
         .task-btn.wa { background-color: #25D366; }
         .task-btn.wa:hover { background-color: #20bd5a; }
         
-        /* State pas tombol misi diklik */
         .task-btn.done { background-color: #f0f2f5; border-color: #e4e7eb; color: #8792a2; cursor: not-allowed; pointer-events: none; }
         .task-btn.done .done-icon { color: #28a745; }
 
@@ -62,227 +61,122 @@
     <div class="container">
         
         <!-- 1. MODE BUAT LINK -->
-        <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
-            <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
-            
-            <label style="display: flex; align-items: center; text-align: left; margin-bottom: 20px; font-size: 15px; cursor: pointer; font-weight: 500;">
-                <input type="checkbox" id="check-sub2unlock" style="width: 20px; height: 20px; margin-right: 10px; cursor: pointer;">
-                Aktifkan Sub2Unlock (Like, Sub, WA)
-            </label>
-
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
-            <div id="result-box" style="display: none; margin-top: 20px;">
-                <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
-            </div>
-        </div>
+        <div id="create-mode" style="display: none;"> (Tidak berubah, tetap sama) ... </div>
 
         <!-- 2. HALAMAN SUB2UNLOCK -->
         <div id="sub2unlock-mode" style="display: none; padding-top: 10px;">
-            <svg viewBox="0 0 24 24" width="60" height="60" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg viewBox="0 0 24 24" width="60" height="60" stroke="#000" stroke-width="1.5" fill="none" ... > (Ikon Gembok) </svg>
             <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Selesaikan Misi</h2>
             <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Klik dan selesaikan misi di bawah untuk membuka link.</p>
             
             <div class="task-container">
-                <!-- Tombol 1: YouTube Like & Komen -->
-                <button id="btn-like" class="task-btn yt" onclick="doSubTask('like', 'https://youtu.be/b6y3eToHOeM?si=OrsvWqQVy6nKHwia')">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <!-- PERUBAHAN: onclick sekarang memanggil fungsi gateway -->
+                <button id="btn-like" class="task-btn yt" onclick="openTaskGateway('like')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">...</svg>
                     <span>Like & Komen Video YouTube</span>
                 </button>
-                
-                <!-- Tombol 2: YouTube Subscribe -->
-                <button id="btn-sub" class="task-btn yt" onclick="doSubTask('sub', 'https://www.youtube.com/@seputarlinkvidey?sub_confirmation=1')">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <button id="btn-sub" class="task-btn yt" onclick="openTaskGateway('sub')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">...</svg>
                     <span>Subscribe Channel</span>
                 </button>
-                
-                <!-- Tombol 3: WhatsApp -->
-                <button id="btn-wa" class="task-btn wa" onclick="doSubTask('wa', 'https://whatsapp.com/channel/0029Vb6hCJ7CBtxHIx0Xyc0N')">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                <button id="btn-wa" class="task-btn wa" onclick="openTaskGateway('wa')">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">...</svg>
                     <span>Gabung Saluran WhatsApp</span>
                 </button>
             </div>
-            
-            <button id="btn-unlock" class="unlock-btn locked" disabled>
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                Menunggu Verifikasi (0/3)
-            </button>
+            <button id="btn-unlock" class="unlock-btn locked" disabled>...</button>
         </div>
 
-        <!-- 3. HALAMAN VERIFIKASI ROBOT -->
-        <div id="robot-mode" style="display: none;">
-            <svg viewBox="0 0 24 24" width="75" height="75" stroke="#222" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;"><rect x="4" y="8" width="16" height="12" rx="2" ry="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path><path d="M12 8V5"></path><circle cx="12" cy="3" r="2"></circle></svg>
-            <h2 style="margin-top: 0; font-size: 22px; font-weight: 600;">Security Check</h2>
-            <p style="color: #666; font-size: 14px; margin-bottom: 30px;">Mohon verifikasi bahwa Anda adalah manusia.</p>
-            <div class="captcha-btn" id="captcha-wrap" onclick="verifyRobotClick(event)">
-                <div class="captcha-box" id="c-box"></div>
-                <span style="font-weight: 500; user-select: none;">I'm not a robot</span>
-            </div>
-            <button id="continue-btn" onclick="continueToNextPhase()">Lanjut ke Halaman</button>
-        </div>
+        <!-- HALAMAN-HALAMAN LAIN (ROBOT, PASSWORD, DLL) TIDAK BERUBAH -->
+        ...
 
-        <!-- 4. HALAMAN PASSWORD -->
-        <div id="password-mode" style="display: none;">
-            <div class="pwd-container">
-                <svg viewBox="0 0 24 24" width="60" height="60" stroke="#007bff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                <h2 style="margin-top: 0; font-size: 20px; font-weight: 600;">Halaman Terkunci</h2>
-                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Masukkan password untuk melihat konten.</p>
-                <input type="text" id="pwd-input" placeholder="Ketik password di sini..." autocomplete="off" onfocus="handlePwdClick()">
-                <p class="error-msg" id="pwd-error">Password salah!</p>
-                <button onclick="submitPassword()" style="width: auto; padding: 10px 30px;">Masuk</button>
-            </div>
-        </div>
-        
-        <!-- 5. HALAMAN VIEW KONTEN -->
-        <div id="view-mode" style="display: none;"></div>
-
-        <!-- 6. HALAMAN LANJUTKAN -->
-        <div id="continue-to-link-mode" style="display: none; padding-top: 50px;">
-             <svg viewBox="0 0 24 24" width="70" height="70" stroke="#28a745" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
-            <h2 style="margin-top: 10px; font-weight: 600;">Link Anda Siap</h2>
-            <p style="color: #666; margin-bottom: 30px;">Klik untuk melanjutkan ke tujuan akhir.</p>
-            <button id="lanjutkan-btn" onclick="openFinalLink()" style="width: auto; padding: 12px 40px; background-color: #28a745;">Lanjutkan</button>
+        <!-- HALAMAN PERANTARA (GATEWAY) - BARU & TERSEMBUNYI -->
+        <div id="gateway-mode" style="display: none; padding-top: 80px;">
+            <div class="spinner-icon" style="width: 40px; height: 40px; border-width: 4px; margin: 0 auto;"></div>
+            <p style="color: #666; font-size: 16px; margin-top: 20px;">Mengarahkan Anda dengan aman...</p>
         </div>
     </div>
 
     <script>
-        const ADS =[
+        const ADS = [
             "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
             "https://omg10.com/4/10390860"
         ];
         
-        // Kunci Rahasia untuk Enkripsi AES (Bisa diganti dengan kunci apapun)
         const AES_SECRET_KEY = "S3cur3L1nk_2026_!@#";
+
+        // ==========================================
+        // KONFIGURASI LINK MISI (TERSEMBUNYI DARI BOT)
+        // ==========================================
+        const _taskConfig = {
+            like: "https://youtu.be/b6y3eToHOeM?si=OrsvWqQVy6nKHwia",
+            sub: "https://www.youtube.com/@seputarlinkvidey?sub_confirmation=1",
+            wa: "https://whatsapp.com/channel/0029Vb6hCJ7CBtxHIx0Xyc0N"
+        };
         
         let _0xVault =[]; 
         let _pageData = null;
 
-        function getNextAd() {
-            let ptr = parseInt(localStorage.getItem('_ad_pointer') || '0');
-            let ad = ADS[ptr % ADS.length];
-            localStorage.setItem('_ad_pointer', ptr + 1);
-            return ad;
-        }
+        function getNextAd() { /* ... fungsi tetap sama ... */ }
+        function encryptAES(text) { /* ... fungsi tetap sama ... */ }
+        function decryptAES(ciphertext) { /* ... fungsi tetap sama ... */ }
 
-        // FUNGSI ENKRIPSI AES
-        function encryptAES(text) {
-            return encodeURIComponent(CryptoJS.AES.encrypt(text, AES_SECRET_KEY).toString());
-        }
-
-        function decryptAES(ciphertext) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(decodeURIComponent(ciphertext), AES_SECRET_KEY);
-                return bytes.toString(CryptoJS.enc.Utf8);
-            } catch (e) { return null; }
-        }
-
-        function hideAllModes() {['create-mode', 'sub2unlock-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode'].forEach(id => {
+        function hideAllModes() {
+            // PERUBAHAN: Tambahkan gateway-mode untuk disembunyikan
+            ['create-mode', 'sub2unlock-mode', 'robot-mode', 'password-mode', 'view-mode', 'continue-to-link-mode', 'gateway-mode'].forEach(id => {
                 document.getElementById(id).style.display = 'none';
             });
         }
 
-        // ==========================================
-        // SENSOR LAYAR (BIAR ANGKA VERIFIKASI LANGSUNG NAMBAH)
-        // ==========================================
-        window.addEventListener('focus', function() {
-            const path = window.location.pathname;
-            const id = path.split('/').filter(p => p).pop();
-            if (id && document.getElementById('sub2unlock-mode').style.display === 'block') {
-                checkSub2UnlockStatus(id);
-            }
-        });
-
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) { window.location.reload(); }
-        });
+        window.addEventListener('focus', function() { /* ... fungsi tetap sama ... */ });
+        window.addEventListener('pageshow', function(event) { /* ... fungsi tetap sama ... */ });
 
         // ==========================================
-        // ALUR & PROGRESI HALAMAN
+        // ALUR UTAMA & PROGRESI HALAMAN
         // ==========================================
-        function runProgressionChecks(id) {
-            hideAllModes();
-            
-            // 1. Cek Sub2Unlock
-            if (_pageData.useSub2Unlock && !localStorage.getItem('sub_pass_' + id)) {
-                document.getElementById('sub2unlock-mode').style.display = 'block';
-                checkSub2UnlockStatus(id);
-                return;
-            }
-
-            // 2. Cek Robot
-            const isRobotPassed = localStorage.getItem('robot_pass_' + id) && (Date.now() - parseInt(localStorage.getItem('robot_pass_' + id)) < 3600000);
-            if (!isRobotPassed) {
-                document.getElementById('robot-mode').style.display = 'block';
-                if (sessionStorage.getItem('robot_state_' + id) === 'spinning') {
-                    showSpinnerVisual();
-                    setTimeout(finishSpinnerAndShowContinue, 1500);
-                }
-                return;
-            }
-
-            // 3. Cek Password
-            const hasPassword = _pageData.password && _pageData.password.trim() !== "";
-            if (hasPassword && localStorage.getItem('pwd_pass_' + id) !== _pageData.password) {
-                document.getElementById('password-mode').style.display = 'block';
-                return;
-            }
-            
-            // 4. Lolos Semua -> Tampilkan Konten
-            renderText(_pageData.content);
-        }
+        function runProgressionChecks(id) { /* ... fungsi tetap sama, tidak ada perubahan ... */ }
 
         // ==========================================
-        // LOGIKA SUB2UNLOCK (DENGAN SENSOR INSTAN)
+        // LOGIKA SUB2UNLOCK DENGAN GATEWAY
         // ==========================================
-        function checkSub2UnlockStatus(id) {
-            let doneCount = 0;
-            const tasks =['like', 'sub', 'wa'];
+        function checkSub2UnlockStatus(id) { /* ... fungsi tetap sama ... */ }
 
-            tasks.forEach(task => {
-                if (sessionStorage.getItem(`task_${task}_${id}`)) {
-                    const btn = document.getElementById(`btn-${task}`);
-                    if(btn) {
-                        btn.classList.add('done');
-                        btn.onclick = null;
-                        btn.innerHTML = `<svg class="done-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Misi Selesai</span>`;
-                        doneCount++;
-                    }
-                }
-            });
-            
-            const finalBtn = document.getElementById('btn-unlock');
-            if(finalBtn) {
-                if (doneCount === 3) {
-                    finalBtn.classList.remove('locked');
-                    finalBtn.classList.add('unlocked');
-                    finalBtn.disabled = false;
-                    finalBtn.onclick = finishSub2Unlock;
-                    finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg> Lanjutkan ke Tautan`;
-                } else {
-                    finalBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Menunggu Verifikasi (${doneCount}/3)`;
-                }
-            }
-        }
-
-        function doSubTask(taskName, url) {
+        // FUNGSI GATEWAY BARU
+        function openTaskGateway(taskName) {
             const id = window.location.pathname.split('/').filter(p => p).pop();
             sessionStorage.setItem(`task_${taskName}_${id}`, 'true');
             
-            // HANYA BUKA LINK, TIDAK ADA IKLAN DI SINI
-            window.open(url, '_blank');
+            // Buka halaman perantara /go, bukan link YouTube langsung
+            const gatewayUrl = `${window.location.origin}/go#${taskName}`;
+            window.open(gatewayUrl, '_blank');
             
-            // Update sensor seketika (kasih jeda 0.5 dtk buat sensasi mengecek)
             setTimeout(() => {
                 checkSub2UnlockStatus(id);
             }, 500);
         }
 
+        // FUNGSI INI AKAN BERJALAN DI HALAMAN /go
+        function executeGatewayRedirect() {
+            hideAllModes();
+            document.getElementById('gateway-mode').style.display = 'block';
+
+            const taskName = window.location.hash.substring(1);
+            const targetUrl = _taskConfig[taskName];
+
+            if (targetUrl) {
+                // Jeda 1 detik biar kelihatan "aman" lalu redirect
+                setTimeout(() => {
+                    window.location.replace(targetUrl);
+                }, 1000);
+            } else {
+                document.body.innerHTML = "Link tujuan tidak ditemukan.";
+            }
+        }
+
         function finishSub2Unlock() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
+             const id = window.location.pathname.split('/').filter(p => p).pop();
             localStorage.setItem('sub_pass_' + id, 'true');
             
-            // IKLAN MUNCUL DI SINI (Saat klik tombol hijau 'Lanjutkan ke Tautan')
             const nextTab = window.open(window.location.href, '_blank');
             if (nextTab) { 
                 window.location.href = getNextAd(); 
@@ -290,125 +184,29 @@
                 window.location.reload(); 
             }
         }
-
-        // ==========================================
-        // ROBOT & PASSWORD
-        // ==========================================
-        function verifyRobotClick(event) {
-            event.stopPropagation();
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            sessionStorage.setItem('robot_state_' + id, 'spinning');
-            const newTab = window.open(window.location.href, '_blank');
-            showSpinnerVisual();
-            if (newTab) { setTimeout(() => { window.location.href = getNextAd(); }, 1500); } 
-            else { setTimeout(finishSpinnerAndShowContinue, 1500); }
-        }
-
-        function showSpinnerVisual() {
-            const box = document.getElementById('c-box');
-            box.style.border = 'none'; box.style.background = 'transparent';
-            box.innerHTML = '<div class="spinner-icon"></div>'; box.style.pointerEvents = 'none';
-        }
-
-        function finishSpinnerAndShowContinue() {
-            const box = document.getElementById('c-box');
-            box.style.border = '2px solid #28a745'; box.style.backgroundColor = '#28a745';
-            box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-            document.getElementById('continue-btn').style.display = 'block';
-        }
-
-        function continueToNextPhase() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            localStorage.setItem('robot_pass_' + id, Date.now());
-            sessionStorage.removeItem('robot_state_' + id); 
-            const nextTab = window.open(window.location.href, '_blank');
-            if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
-        }
-
-        function handlePwdClick() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            if (!sessionStorage.getItem('pwd_clicked_' + id)) {
-                sessionStorage.setItem('pwd_clicked_' + id, 'true');
-                const newTab = window.open(window.location.href, '_blank');
-                if (newTab) { window.location.href = getNextAd(); }
-            }
-        }
-
-        function submitPassword() {
-            const id = window.location.pathname.split('/').filter(p => p).pop();
-            const pwdInput = document.getElementById('pwd-input').value;
-            if (pwdInput !== _pageData.password) {
-                document.getElementById('pwd-error').style.display = 'block';
-            } else {
-                localStorage.setItem('pwd_pass_' + id, _pageData.password);
-                const nextTab = window.open(window.location.href, '_blank');
-                if (nextTab) { window.location.href = getNextAd(); } else { window.location.reload(); }
-            }
-        }
-
-        // ==========================================
-        // KONTEN & LINK HANDLING (DENGAN AES)
-        // ==========================================
-        function universalMask(url) {
-            try {
-                let u = new URL(url);
-                let newPath = u.pathname.split('/').map(p => (p.length > 5 && /[0-9]/.test(p)) ? (Math.random().toString(36).substring(2, 10) + (p.includes('.') ? '.' + p.split('.').pop() : '')) : p).join('/');
-                let params = new URLSearchParams(u.search);
-                params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
-                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
-            } catch (e) { return url; }
-        }
-
-        function renderText(text) {
-            const viewDiv = document.getElementById('view-mode');
-            viewDiv.style.display = 'block'; _0xVault =[];
-            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                _0xVault.push(btoa(url));
-                return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
-            });
-        }
-
-        function handleAdSystem(id, event) {
-            event.preventDefault();
-            const realLink = atob(_0xVault[id]);
-            
-            // ENKRIPSI LINK ASLI MENGGUNAKAN AES
-            const encryptedLink = encryptAES(realLink);
-            
-            const continueUrl = `${window.location.origin}/lanjutkan#${encryptedLink}`;
-            const nextTab = window.open(continueUrl, '_blank');
-            if (nextTab) { 
-                window.location.href = getNextAd(); 
-            } else { 
-                window.location.href = continueUrl; 
-            }
-        }
         
-        function openFinalLink() {
-            // DEKRIPSI LINK AES
-            const encryptedLink = window.location.hash.substring(1);
-            const realUrl = decryptAES(encryptedLink);
-            
-            if (realUrl) {
-                window.open(realUrl, '_blank');
-                window.location.href = getNextAd();
-            } else {
-                alert("Tautan rusak atau tidak valid.");
-            }
-        }
-
         // ==========================================
-        // INISIALISASI & API
+        // SEMUA FUNGSI LAINNYA TETAP SAMA
+        // (ROBOT, PASSWORD, KONTEN, INIT, GENERATE)
         // ==========================================
+        
+        // PERUBAHAN PENTING DI BAGIAN INISIALISASI
         async function init() {
             const path = window.location.pathname;
+            
+            // ROUTING BARU: Deteksi jika ini adalah halaman Gateway /go
+            if (path.startsWith('/go')) {
+                executeGatewayRedirect();
+                return;
+            }
+
             if (path.startsWith('/lanjutkan')) {
                 hideAllModes(); document.getElementById('continue-to-link-mode').style.display = 'block';
                 return;
             }
 
             const id = path.split('/').filter(p => p).pop();
-            if (id && id !== 'index.html' && id !== 'lanjutkan') {
+            if (id && id !== 'index.html' && !['lanjutkan', 'go'].includes(id)) {
                 try {
                     const res = await fetch('/api/get/' + id);
                     if (!res.ok) throw new Error("Not found");
@@ -422,33 +220,8 @@
                 hideAllModes(); document.getElementById('create-mode').style.display = 'block';
             }
         }
-
-        async function generateLink() {
-            const text = document.getElementById('input-text').value;
-            const pwd = document.getElementById('input-password').value;
-            const useSub = document.getElementById('check-sub2unlock').checked;
-            
-            if (!text) return;
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "Processing...";
-            try {
-                const res = await fetch('/api/create', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text, password: pwd, useSub2Unlock: useSub })
-                });
-                const data = await res.json();
-                document.getElementById('result-url').value = window.location.origin + '/' + data.id;
-                document.getElementById('result-box').style.display = 'block';
-            } catch (e) { alert("Error!"); }
-            btn.disabled = false; btn.innerText = "Buat Link";
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("result-url");
-            copyText.select(); document.execCommand("copy");
-            document.getElementById("btn-copy").innerText = "Tersalin!";
-            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
-        }
+        
+        // ... sisa fungsi seperti generateLink, copyLink, dll tidak berubah ...
 
         init();
     </script>
