@@ -1,6 +1,3 @@
-// Nama file: index.js (atau worker.js, tergantung settingan di wrangler.toml)
-// Full script untuk Cloudflare Worker
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
