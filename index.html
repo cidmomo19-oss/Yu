@@ -4,16 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Content Viewer</title>
-    <!-- Tambahkan library Marked.js untuk parsing Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
         .container { max-width: 600px; margin: 0 auto; text-align: center; }
         
-        textarea, input[type="text"] { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
-        textarea:focus, input[type="text"]:focus { border-color: #007bff; }
-        textarea { min-height: 120px; resize: vertical; }
+        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
+        textarea:focus, input:focus { border-color: #007bff; }
         
         button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
         button:hover { background-color: #333333; }
@@ -34,18 +30,8 @@
         .pwd-container { text-align: center; padding: 30px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .error-msg { color: #dc3545; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: none; font-weight: 500;}
 
-        #view-mode { text-align: left; font-size: 15px; line-height: 1.6; }
+        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-        
-        /* Checkbox Style */
-        .checkbox-container { display: flex; align-items: center; margin-bottom: 20px; text-align: left; cursor: pointer; font-size: 14px; font-weight: 500;}
-        .checkbox-container input { width: auto; margin: 0 10px 0 0; cursor: pointer; }
-
-        /* Basic Markdown Styles */
-        #view-mode img { max-width: 100%; border-radius: 4px; }
-        #view-mode code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-        #view-mode pre { background: #f4f4f4; padding: 10px; border-radius: 4px; overflow-x: auto; }
-        #view-mode blockquote { border-left: 4px solid #ddd; margin-left: 0; padding-left: 15px; color: #555; }
     </style>
 </head>
 <body class="no-select" oncontextmenu="return false">
@@ -54,18 +40,9 @@
         
         <!-- 1. MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli... (Mendukung format Markdown jika dicentang)"></textarea>
-            
+            <textarea id="input-text" placeholder="Masukkan teks dan link asli..."></textarea>
             <input type="text" id="input-password" placeholder="Password (Opsional, kosongkan jika tidak perlu)" autocomplete="off">
-            
-            <!-- Tambahan Checkbox Aktifkan Markdown -->
-            <label class="checkbox-container">
-                <input type="checkbox" id="input-markdown"> 
-                Aktifkan Format Markdown
-            </label>
-
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
-            
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
                 <button id="btn-copy" onclick="copyLink()">Salin Link</button>
@@ -110,8 +87,8 @@
 
     <script>
         const ADS =[
-            "https://conductivebreeds.com/qv7txv4c1u?key=c7d2434d3ed66645d911fc2e3d0e1bcf",
-            "https://omg10.com/4/10608604"
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9",
+            "https://omg10.com/4/10390860"
         ];
         let _0xVault =[]; 
         let _pageData = null;
@@ -228,50 +205,11 @@
 
         function renderText(text) {
             const viewDiv = document.getElementById('view-mode');
-            viewDiv.style.display = 'block'; 
-            _0xVault = [];
-
-            // Jika kreator mencentang Markdown saat buat link
-            if (_pageData && _pageData.isMarkdown) {
-                viewDiv.style.whiteSpace = 'normal'; // Reset pre-wrap agar HTML markdown tidak berantakan
-                
-                // Parse ke HTML menggunakan library Marked
-                let rawHtml = marked.parse(text);
-                
-                // Buat temporary div untuk memanipulasi DOM (mengubah <a> menjadi span custom kita)
-                let tempDiv = document.createElement('div');
-                tempDiv.innerHTML = rawHtml;
-                
-                let links = tempDiv.querySelectorAll('a');
-                links.forEach(a => {
-                    let absoluteUrl = a.href;
-                    _0xVault.push(btoa(absoluteUrl));
-                    
-                    let span = document.createElement('span');
-                    span.className = 'link-blue';
-                    span.setAttribute('onclick', `handleAdSystem(${_0xVault.length - 1}, event)`);
-                    
-                    // Jika teks link sama dengan URL (user nulis naked link), tampilkan versi mask
-                    if (a.textContent.trim() === a.getAttribute('href') || a.textContent.trim() === absoluteUrl) {
-                        span.innerText = universalMask(absoluteUrl);
-                    } else {
-                        // Jika menggunakan penamaan seperti [Klik Sini](url), biarkan tulisannya tetap "Klik Sini"
-                        span.innerHTML = a.innerHTML;
-                    }
-                    
-                    a.parentNode.replaceChild(span, a);
-                });
-                
-                viewDiv.innerHTML = tempDiv.innerHTML;
-                
-            } else {
-                // FALLBACK TEKS BIASA: Jika checkbox markdown TIDAK dicentang (Original Script)
-                viewDiv.style.whiteSpace = 'pre-wrap';
-                viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                    _0xVault.push(btoa(url));
-                    return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
-                });
-            }
+            viewDiv.style.display = 'block'; _0xVault = [];
+            viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
+                _0xVault.push(btoa(url));
+                return `<span class="link-blue" onclick="handleAdSystem(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
+            });
         }
 
         function handleAdSystem(id, event) {
@@ -326,16 +264,13 @@
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             const pwd = document.getElementById('input-password').value;
-            const isMarkdown = document.getElementById('input-markdown').checked; // Ambil value Checkbox
-            
             if (!text) return;
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Processing...";
             try {
                 const res = await fetch('/api/create', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    // Kirim status isMarkdown ke backend/API
-                    body: JSON.stringify({ content: text, password: pwd, isMarkdown: isMarkdown }) 
+                    body: JSON.stringify({ content: text, password: pwd })
                 });
                 const data = await res.json();
                 document.getElementById('result-url').value = window.location.origin + '/' + data.id;
