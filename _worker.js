@@ -5,16 +5,16 @@ export default {
 
     // --- 1. API BUAT LINK (SIMPAN KE KV) --
     if (request.method === "POST" && path === "/api/create") {
-      // PERBAIKAN: Ambil juga data 'isMarkdown' dari frontend
-      const { content, password, isMarkdown } = await request.json();
+      // PERBAIKAN: Ambil juga data 'password' dari frontend
+      const { content, password } = await request.json();
       
       if (!content) return new Response("Empty", { status: 400 });
 
       // Bikin ID 6 Karakter Acak
       const id = Math.random().toString(36).substring(2, 8);
 
-      // PERBAIKAN: Simpan 'content', 'password', DAN 'isMarkdown' ke dalam KV Database
-      await env.PASTE_DB.put(id, JSON.stringify({ content, password, isMarkdown }), { expirationTtl: 2592000 });
+      // PERBAIKAN: Simpan 'content' DAN 'password' ke dalam KV Database
+      await env.PASTE_DB.put(id, JSON.stringify({ content, password }), { expirationTtl: 2592000 });
 
       return new Response(JSON.stringify({ id }), { headers: { "Content-Type": "application/json" } });
     }
@@ -45,4 +45,4 @@ export default {
     }
     return response;
   }
-};
+};p
