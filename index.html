@@ -25,7 +25,7 @@
 
     <div class="container">
         
-        <!-- 1. MODE BUAT LINK (Tanpa input password) -->
+        <!-- MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
             <textarea id="input-text" placeholder="Masukkan teks dan link asli di sini..." rows="8"></textarea>
             <button onclick="generateLink()" id="btn-submit">Buat Link</button>
@@ -35,42 +35,51 @@
             </div>
         </div>
         
-        <!-- 2. HALAMAN VIEW KONTEN (Langsung muncul saat link dibuka) -->
+        <!-- HALAMAN VIEW KONTEN (LANGSUNG) -->
         <div id="view-mode" style="display: none;"></div>
 
     </div>
 
     <script>
-        // PENGATURAN IKLAN
-        const adUrl = "https://omg10.com/4/10390860";
+        // DAFTAR IKLAN (Sesuai permintaan: 2 iklan bergantian)
+        const LIST_ADS = [
+            "https://omg10.com/4/10390860",
+            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9"
+        ];
         
         let _0xVault = []; 
         let _pageData = null;
         
-        // Variabel untuk menghitung jumlah klik (Logika Ganjil-Genap)
-        let clickCount = 0; 
+        // Counter untuk melacak total klik link
+        let totalClicks = 0; 
+        // Counter khusus untuk menentukan urutan iklan mana yang muncul
+        let adPointer = 0;
 
         // ==========================================
-        // FUNGSI INTERAKSI KLIK LINK
+        // LOGIKA KLIK BERGANTIAN (AD -> LINK -> AD -> LINK)
         // ==========================================
         function handleLinkClick(id, event) {
-            event.preventDefault(); // Mencegah link langsung terbuka
+            event.preventDefault();
 
-            clickCount++; // Tambah jumlah klik setiap kali link ditekan
+            totalClicks++; // Klik bertambah setiap kali ditekan
 
-            // Logika Ganjil Genap (Modulo)
-            if (clickCount % 2 !== 0) {
-                // JIKA KLIK GANJIL (1, 3, 5, dst) -> BUKA IKLAN DI TAB BARU
-                window.open(adUrl, '_blank', 'noopener,noreferrer');
+            if (totalClicks % 2 !== 0) {
+                // --- KLIK GANJIL (1, 3, 5, dst) -> BUKA IKLAN ---
+                // Pilih iklan berdasarkan antrean (adPointer)
+                const adToOpen = LIST_ADS[adPointer % LIST_ADS.length];
+                window.open(adToOpen, '_blank', 'noopener,noreferrer');
+                
+                // Geser antrean iklan untuk klik ganjil berikutnya
+                adPointer++; 
             } else {
-                // JIKA KLIK GENAP (2, 4, 6, dst) -> BUKA LINK ASLI DI TAB BARU
+                // --- KLIK GENAP (2, 4, 6, dst) -> BUKA LINK ASLI ---
                 const realLink = atob(_0xVault[id]);
                 window.open(realLink, '_blank', 'noopener,noreferrer');
             }
         }
 
         // ==========================================
-        // MASKING URL & RENDER TEKS
+        // RENDER & MASKING
         // ==========================================
         function universalMask(url) {
             try {
@@ -87,16 +96,14 @@
             viewDiv.style.display = 'block'; 
             _0xVault = [];
             
-            // Ubah semua URL menjadi span yang bisa diklik
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
                 _0xVault.push(btoa(url));
-                // Panggil fungsi handleLinkClick saat diklik
                 return `<span class="link-blue" onclick="handleLinkClick(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
             });
         }
 
         // ==========================================
-        // INISIALISASI & AMBIL DATA (BISA BACA LINK LAMA)
+        // INIT (SUPPORT LINK LAMA TANPA PASSWORD)
         // ==========================================
         async function init() {
             const path = window.location.pathname;
@@ -104,52 +111,38 @@
             
             if (id && id !== 'index.html') {
                 try {
-                    // Ambil data dari backend (Cloudflare Worker)
                     const res = await fetch('/api/get/' + id);
                     if (!res.ok) throw new Error("Not found");
                     
                     _pageData = await res.json();
-                    
                     if(!_pageData.content) throw new Error("Content empty");
                     
-                    // LANGSUNG TAMPILKAN KONTEN (Abaikan password meskipun link lama punya password)
+                    // Langsung tampilkan (Mode tanpa robot & tanpa password)
                     document.getElementById('create-mode').style.display = 'none';
                     renderText(_pageData.content);
 
                 } catch (e) {
-                    // Jika error / ID tidak ditemukan, kembalikan ke halaman buat link
                     document.getElementById('create-mode').style.display = 'block';
                 }
             } else {
-                // Jika URL root (/), tampilkan halaman buat link
                 document.getElementById('create-mode').style.display = 'block';
             }
         }
 
-        // ==========================================
-        // FUNGSI BUAT LINK BARU
-        // ==========================================
         async function generateLink() {
             const text = document.getElementById('input-text').value;
             if (!text) return;
-            
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.innerText = "Processing...";
-            
             try {
-                // Hanya mengirim content, tanpa password
                 const res = await fetch('/api/create', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content: text }) 
                 });
                 const data = await res.json();
-                
                 document.getElementById('result-url').value = window.location.origin + '/' + data.id;
                 document.getElementById('result-box').style.display = 'block';
-            } catch (e) { 
-                alert("Gagal membuat link. Periksa koneksi."); 
-            }
-            
+            } catch (e) { alert("Error!"); }
             btn.disabled = false; btn.innerText = "Buat Link";
         }
 
@@ -160,7 +153,6 @@
             setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
         }
 
-        // Jalankan saat web dibuka
         init();
     </script>
 </body>
