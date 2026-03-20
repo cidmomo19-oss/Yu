@@ -17,7 +17,9 @@
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { color: #ff0000; }
 
-        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; padding: 20px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: #fafafa;}
+        /* Halaman View Konten: Dibuat polosan tanpa background, tanpa kotak, tanpa bayangan */
+        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
@@ -35,7 +37,7 @@
             </div>
         </div>
         
-        <!-- HALAMAN VIEW KONTEN (LANGSUNG TAMPIL ASLI) -->
+        <!-- HALAMAN VIEW KONTEN (LANGSUNG TAMPIL ASLI & POLOS) -->
         <div id="view-mode" style="display: none;"></div>
 
     </div>
