@@ -35,47 +35,24 @@
             </div>
         </div>
         
-        <!-- HALAMAN VIEW KONTEN (LANGSUNG) -->
+        <!-- HALAMAN VIEW KONTEN (LANGSUNG TAMPIL ASLI) -->
         <div id="view-mode" style="display: none;"></div>
 
     </div>
 
     <script>
-        let _0xVault = []; 
         let _pageData = null;
 
         // ==========================================
-        // LOGIKA KLIK (LANGSUNG BUKA LINK ASLI TANPA IKLAN)
+        // RENDER TEKS & TAMPILKAN LINK ASLI
         // ==========================================
-        function handleLinkClick(id, event) {
-            event.preventDefault();
-            
-            // Langsung membuka link asli yang terenkripsi
-            const realLink = atob(_0xVault[id]);
-            window.open(realLink, '_blank', 'noopener,noreferrer');
-        }
-
-        // ==========================================
-        // RENDER & MASKING
-        // ==========================================
-        function universalMask(url) {
-            try {
-                let u = new URL(url);
-                let newPath = u.pathname.split('/').map(part => (part.length > 5 && /[0-9]/.test(part)) ? (Math.random().toString(36).substring(2, 10) + (part.includes('.') ? '.' + part.split('.').pop() : '')) : part).join('/');
-                let params = new URLSearchParams(u.search);
-                params.forEach((v, k) => { if (v.length > 4) params.set(k, Math.random().toString(36).substring(2, 11)); });
-                return u.origin + newPath + (params.toString() ? '?' + params.toString() : '');
-            } catch (e) { return url; }
-        }
-
         function renderText(text) {
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block'; 
-            _0xVault = [];
             
+            // Mengubah URL text menjadi tag <a href="..."> standar tanpa diacak
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
-                _0xVault.push(btoa(url));
-                return `<span class="link-blue" onclick="handleLinkClick(${_0xVault.length - 1}, event)">${universalMask(url)}</span>`;
+                return `<a href="${url}" class="link-blue" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
         }
 
