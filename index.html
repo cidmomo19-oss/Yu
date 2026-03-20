@@ -41,41 +41,18 @@
     </div>
 
     <script>
-        // DAFTAR IKLAN (Sesuai permintaan: 2 iklan bergantian)
-        const LIST_ADS = [
-            "https://omg10.com/4/10390860",
-            "https://petsrulefondness.com/bmaye227ji?key=21143f6352edf65a6b64615e9bb37bb9"
-        ];
-        
         let _0xVault = []; 
         let _pageData = null;
-        
-        // Counter untuk melacak total klik link
-        let totalClicks = 0; 
-        // Counter khusus untuk menentukan urutan iklan mana yang muncul
-        let adPointer = 0;
 
         // ==========================================
-        // LOGIKA KLIK BERGANTIAN (AD -> LINK -> AD -> LINK)
+        // LOGIKA KLIK (LANGSUNG BUKA LINK ASLI TANPA IKLAN)
         // ==========================================
         function handleLinkClick(id, event) {
             event.preventDefault();
-
-            totalClicks++; // Klik bertambah setiap kali ditekan
-
-            if (totalClicks % 2 !== 0) {
-                // --- KLIK GANJIL (1, 3, 5, dst) -> BUKA IKLAN ---
-                // Pilih iklan berdasarkan antrean (adPointer)
-                const adToOpen = LIST_ADS[adPointer % LIST_ADS.length];
-                window.open(adToOpen, '_blank', 'noopener,noreferrer');
-                
-                // Geser antrean iklan untuk klik ganjil berikutnya
-                adPointer++; 
-            } else {
-                // --- KLIK GENAP (2, 4, 6, dst) -> BUKA LINK ASLI ---
-                const realLink = atob(_0xVault[id]);
-                window.open(realLink, '_blank', 'noopener,noreferrer');
-            }
+            
+            // Langsung membuka link asli yang terenkripsi
+            const realLink = atob(_0xVault[id]);
+            window.open(realLink, '_blank', 'noopener,noreferrer');
         }
 
         // ==========================================
