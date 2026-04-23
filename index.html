@@ -17,9 +17,21 @@
         .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
         .link-blue:hover { color: #ff0000; }
 
-        /* Halaman View Konten: Dibuat polosan tanpa background, tanpa kotak, tanpa bayangan */
+        /* Halaman View Konten: Polos tanpa background/kotak */
         #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
         
+        /* CSS Untuk Tombol Kapsul Verifikasi (Gimmick) */
+        #verify-mode p { font-size: 16px; margin-bottom: 25px; color: #555; }
+        button.capsule-btn { 
+            width: auto; 
+            border-radius: 50px; /* Bikin bentuk kapsul */
+            padding: 14px 40px; 
+            background-color: #007bff; 
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button.capsule-btn:hover { background-color: #0056b3; }
+
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
@@ -29,79 +41,106 @@
         
         <!-- MODE BUAT LINK -->
         <div id="create-mode" style="display: none;">
+            <h2>Buat Link Aman (Memory Browser)</h2>
             <textarea id="input-text" placeholder="Masukkan teks dan link asli di sini..." rows="8"></textarea>
-            <button onclick="generateLink()" id="btn-submit">Buat Link</button>
+            <button onclick="generateLink()" id="btn-submit">Simpan ke Memory & Buat Link</button>
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
                 <button id="btn-copy" onclick="copyLink()">Salin Link</button>
             </div>
         </div>
+
+        <!-- HALAMAN VERIFIKASI GIMMICK (Tampil sebelum muat konten) -->
+        <div id="verify-mode" style="display: none;">
+            <h2>Verifikasi Keamanan</h2>
+            <p>Sistem kami perlu memastikan Anda adalah manusia.<br>Silakan klik tombol di bawah ini untuk melanjutkan.</p>
+            <button class="capsule-btn" onclick="verifyRobot()">I Am not robot</button>
+        </div>
         
-        <!-- HALAMAN VIEW KONTEN (LANGSUNG TAMPIL ASLI & POLOS) -->
+        <!-- HALAMAN VIEW KONTEN -->
         <div id="view-mode" style="display: none;"></div>
 
     </div>
 
     <script>
-        let _pageData = null;
+        let _decodedContent = "";
 
         // ==========================================
-        // RENDER TEKS & TAMPILKAN LINK ASLI
+        // 1. INIT - Cek URL & Panggil Memory Browser (Local Storage)
+        // ==========================================
+        function init() {
+            // Ambil ID dari URL (contoh: #xyz123)
+            const id = window.location.hash.substring(1); 
+            
+            if (id) {
+                // Tarik data dari Memory Browser berdasarkan ID
+                const savedData = localStorage.getItem('secure_link_' + id);
+
+                if (savedData) {
+                    _decodedContent = savedData;
+                    
+                    // Sembunyikan mode buat link, TAMPILKAN VERIFIKASI GIMMICK DULU
+                    document.getElementById('create-mode').style.display = 'none';
+                    document.getElementById('verify-mode').style.display = 'block';
+                } else {
+                    alert("Konten tidak ditemukan di memori browser ini!");
+                    window.location.hash = ''; // Bersihkan hash
+                    document.getElementById('create-mode').style.display = 'block';
+                }
+            } else {
+                // Kalau gak ada ID, tampilkan mode pembuat link
+                document.getElementById('create-mode').style.display = 'block';
+            }
+        }
+
+        // ==========================================
+        // 2. KLIK GIMMICK "I AM NOT ROBOT"
+        // ==========================================
+        function verifyRobot() {
+            // Sembunyikan halaman verifikasi
+            document.getElementById('verify-mode').style.display = 'none';
+            // Render dan tampilkan konten
+            renderText(_decodedContent);
+        }
+
+        // ==========================================
+        // 3. RENDER TEKS & TAMPILKAN LINK ASLI
         // ==========================================
         function renderText(text) {
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block'; 
             
-            // Mengubah URL text menjadi tag <a href="..."> standar tanpa diacak
+            // Mengubah URL text menjadi tag <a href="..."> yang bisa diklik
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
                 return `<a href="${url}" class="link-blue" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
         }
 
         // ==========================================
-        // INIT (SUPPORT LINK LAMA TANPA PASSWORD)
+        // 4. BIKIN LINK BARU (Simpan di Memory Browser)
         // ==========================================
-        async function init() {
-            const path = window.location.pathname;
-            const id = path.split('/').filter(p => p).pop();
-            
-            if (id && id !== 'index.html') {
-                try {
-                    const res = await fetch('/api/get/' + id);
-                    if (!res.ok) throw new Error("Not found");
-                    
-                    _pageData = await res.json();
-                    if(!_pageData.content) throw new Error("Content empty");
-                    
-                    // Langsung tampilkan (Mode tanpa robot & tanpa password)
-                    document.getElementById('create-mode').style.display = 'none';
-                    renderText(_pageData.content);
-
-                } catch (e) {
-                    document.getElementById('create-mode').style.display = 'block';
-                }
-            } else {
-                document.getElementById('create-mode').style.display = 'block';
-            }
-        }
-
-        async function generateLink() {
+        function generateLink() {
             const text = document.getElementById('input-text').value;
             if (!text) return;
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true; btn.innerText = "Processing...";
-            try {
-                const res = await fetch('/api/create', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: text }) 
-                });
-                const data = await res.json();
-                document.getElementById('result-url').value = window.location.origin + '/' + data.id;
-                document.getElementById('result-box').style.display = 'block';
-            } catch (e) { alert("Error!"); }
-            btn.disabled = false; btn.innerText = "Buat Link";
+            
+            // Bikin ID acak (contoh: 8k2m9a)
+            const randomId = Math.random().toString(36).substring(2, 8);
+            
+            // SIMPAN KE LOCAL STORAGE (Memory Browser)
+            localStorage.setItem('secure_link_' + randomId, text);
+            
+            // Bikin URL pendek dengan ID
+            const baseUrl = window.location.href.split('#')[0];
+            const finalUrl = baseUrl + '#' + randomId;
+
+            // Tampilkan hasilnya
+            document.getElementById('result-url').value = finalUrl;
+            document.getElementById('result-box').style.display = 'block';
         }
 
+        // ==========================================
+        // 5. COPY LINK
+        // ==========================================
         function copyLink() {
             const copyText = document.getElementById("result-url");
             copyText.select(); document.execCommand("copy");
@@ -109,6 +148,7 @@
             setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
         }
 
+        // Jalankan saat pertama kali dibuka
         init();
     </script>
 </body>
