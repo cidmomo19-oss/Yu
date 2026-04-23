@@ -5,33 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Content Viewer</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: #ffffff; color: #000000; margin: 0; padding: 40px 20px; }
-        .container { max-width: 600px; margin: 0 auto; text-align: center; }
-        
-        textarea, input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 15px; border: 1px solid #cccccc; border-radius: 4px; outline: none; margin-bottom: 15px; font-family: inherit; transition: border-color 0.2s; }
-        textarea:focus, input:focus { border-color: #007bff; }
-        
-        button { background-color: #000000; color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: background 0.2s; }
-        button:hover { background-color: #333333; }
-        
-        .link-blue { color: #0000ee; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; }
-        .link-blue:hover { color: #ff0000; }
-
-        /* Halaman View Konten: Polos tanpa background/kotak */
-        #view-mode { text-align: left; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
-        
-        /* CSS Untuk Tombol Kapsul Verifikasi (Gimmick) */
-        #verify-mode p { font-size: 16px; margin-bottom: 25px; color: #555; }
-        button.capsule-btn { 
-            width: auto; 
-            border-radius: 50px; /* Bikin bentuk kapsul */
-            padding: 14px 40px; 
-            background-color: #007bff; 
-            font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        /* Desain Dasar */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f4f7f6; /* Warna background abu-abu muda biar elegan */
+            color: #333333; 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
         }
-        button.capsule-btn:hover { background-color: #0056b3; }
+        
+        .container { 
+            width: 100%; 
+            max-width: 550px; 
+            margin: 0 auto; 
+        }
 
+        /* Desain Card Modern untuk Form & Verifikasi */
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        textarea, input { 
+            width: 100%; box-sizing: border-box; padding: 14px; font-size: 15px; 
+            border: 1px solid #d1d5db; border-radius: 8px; outline: none; 
+            margin-bottom: 15px; font-family: inherit; transition: all 0.3s; 
+            background-color: #f9fafb;
+        }
+        textarea:focus, input:focus { 
+            border-color: #3b82f6; 
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        button.btn-primary { 
+            background-color: #111827; color: #ffffff; border: none; 
+            padding: 14px 24px; font-size: 15px; border-radius: 8px; 
+            cursor: pointer; font-weight: bold; width: 100%; 
+            transition: background 0.2s; 
+        }
+        button.btn-primary:hover { background-color: #374151; }
+        
+        .link-blue { color: #2563eb; text-decoration: none; word-break: break-all; cursor: pointer; font-weight: 500; transition: color 0.2s;}
+        .link-blue:hover { color: #dc2626; text-decoration: underline; }
+
+        /* =========================================
+           DESAIN KHUSUS HALAMAN VERIFIKASI GIMMICK
+           ========================================= */
+        #verify-mode h2 { margin-top: 10px; font-size: 22px; color: #111827; }
+        #verify-mode p { font-size: 15px; color: #6b7280; line-height: 1.5; margin-bottom: 30px; }
+        
+        /* Ikon Perisai (Shield) */
+        .shield-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 15px auto;
+            color: #10b981; /* Warna hijau aman */
+        }
+
+        /* Tombol Kapsul Modern */
+        button.capsule-btn { 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: auto; 
+            border-radius: 50px; /* Bentuk Kapsul */
+            padding: 14px 35px; 
+            background-color: #ffffff; 
+            color: #374151;
+            font-size: 16px;
+            font-weight: 600;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+        button.capsule-btn:hover { 
+            border-color: #3b82f6; 
+            color: #3b82f6;
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+        button.capsule-btn:active { transform: translateY(0); }
+        button.capsule-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .footer-text { margin-top: 30px; font-size: 12px; color: #9ca3af; }
+
+        /* Halaman View Konten: Keluar dari Card, tampil polosan */
+        #view-mode { 
+            text-align: left; white-space: pre-wrap; font-size: 16px; 
+            line-height: 1.7; background: #ffffff; padding: 40px; 
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
         .no-select { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     </style>
 </head>
@@ -39,22 +113,36 @@
 
     <div class="container">
         
-        <!-- MODE BUAT LINK -->
-        <div id="create-mode" style="display: none;">
-            <h2>Buat Link Aman (Memory Browser)</h2>
-            <textarea id="input-text" placeholder="Masukkan teks dan link asli di sini..." rows="8"></textarea>
-            <button onclick="generateLink()" id="btn-submit">Simpan ke Memory & Buat Link</button>
+        <!-- MODE BUAT LINK (Dalam Card) -->
+        <div id="create-mode" class="card" style="display: none;">
+            <h2 style="margin-top:0;">Buat Link Aman</h2>
+            <p style="color:#6b7280; font-size: 14px; margin-bottom: 20px;">Konten akan disimpan di memori browser ini secara lokal.</p>
+            <textarea id="input-text" placeholder="Masukkan teks dan link asli di sini..." rows="6"></textarea>
+            <button onclick="generateLink()" class="btn-primary" id="btn-submit">Simpan & Buat Link</button>
+            
             <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" onclick="copyLink()">Salin Link</button>
+                <button id="btn-copy" class="btn-primary" onclick="copyLink()" style="background-color: #3b82f6;">Salin Link</button>
             </div>
         </div>
 
-        <!-- HALAMAN VERIFIKASI GIMMICK (Tampil sebelum muat konten) -->
-        <div id="verify-mode" style="display: none;">
-            <h2>Verifikasi Keamanan</h2>
-            <p>Sistem kami perlu memastikan Anda adalah manusia.<br>Silakan klik tombol di bawah ini untuk melanjutkan.</p>
-            <button class="capsule-btn" onclick="verifyRobot()">I Am not robot</button>
+        <!-- HALAMAN VERIFIKASI GIMMICK (Dalam Card) -->
+        <div id="verify-mode" class="card" style="display: none;">
+            <!-- Ikon Keamanan SVG -->
+            <svg class="shield-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            
+            <h2>Pengecekan Keamanan</h2>
+            <p>Sistem perlu memverifikasi bahwa koneksi ini aman.<br>Silakan konfirmasi bahwa Anda bukan robot.</p>
+            
+            <button class="capsule-btn" id="btn-robot" onclick="verifyRobot()">
+                <!-- Ikon User kecil di dalam tombol -->
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <span id="btn-text">I Am not robot</span>
+            </button>
+
+            <div class="footer-text">Protected by SecureContent Viewer</div>
         </div>
         
         <!-- HALAMAN VIEW KONTEN -->
@@ -69,38 +157,47 @@
         // 1. INIT - Cek URL & Panggil Memory Browser (Local Storage)
         // ==========================================
         function init() {
-            // Ambil ID dari URL (contoh: #xyz123)
             const id = window.location.hash.substring(1); 
             
             if (id) {
-                // Tarik data dari Memory Browser berdasarkan ID
                 const savedData = localStorage.getItem('secure_link_' + id);
 
                 if (savedData) {
                     _decodedContent = savedData;
                     
-                    // Sembunyikan mode buat link, TAMPILKAN VERIFIKASI GIMMICK DULU
                     document.getElementById('create-mode').style.display = 'none';
                     document.getElementById('verify-mode').style.display = 'block';
                 } else {
                     alert("Konten tidak ditemukan di memori browser ini!");
-                    window.location.hash = ''; // Bersihkan hash
+                    window.location.hash = ''; 
                     document.getElementById('create-mode').style.display = 'block';
                 }
             } else {
-                // Kalau gak ada ID, tampilkan mode pembuat link
                 document.getElementById('create-mode').style.display = 'block';
             }
         }
 
         // ==========================================
-        // 2. KLIK GIMMICK "I AM NOT ROBOT"
+        // 2. KLIK GIMMICK "I AM NOT ROBOT" DENGAN DELAY
         // ==========================================
         function verifyRobot() {
-            // Sembunyikan halaman verifikasi
-            document.getElementById('verify-mode').style.display = 'none';
-            // Render dan tampilkan konten
-            renderText(_decodedContent);
+            const btn = document.getElementById('btn-robot');
+            const btnText = document.getElementById('btn-text');
+            
+            // Ubah tampilan tombol biar seolah-olah lagi loading ngecek
+            btn.disabled = true;
+            btn.style.borderColor = "#10b981";
+            btn.style.color = "#10b981";
+            btnText.innerText = "Memverifikasi...";
+
+            // Delay 1.2 detik biar gimmick-nya terasa nyata
+            setTimeout(() => {
+                document.getElementById('verify-mode').style.display = 'none';
+                renderText(_decodedContent);
+                
+                // Kembalikan style body ke normal (opsional kalau mau nyesuaiin bacaan)
+                document.body.style.alignItems = "flex-start"; 
+            }, 1200);
         }
 
         // ==========================================
@@ -110,7 +207,6 @@
             const viewDiv = document.getElementById('view-mode');
             viewDiv.style.display = 'block'; 
             
-            // Mengubah URL text menjadi tag <a href="..."> yang bisa diklik
             viewDiv.innerHTML = text.replace(/(https?:\/\/[^\s]+)/g, url => {
                 return `<a href="${url}" class="link-blue" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
@@ -123,17 +219,12 @@
             const text = document.getElementById('input-text').value;
             if (!text) return;
             
-            // Bikin ID acak (contoh: 8k2m9a)
             const randomId = Math.random().toString(36).substring(2, 8);
-            
-            // SIMPAN KE LOCAL STORAGE (Memory Browser)
             localStorage.setItem('secure_link_' + randomId, text);
             
-            // Bikin URL pendek dengan ID
             const baseUrl = window.location.href.split('#')[0];
             const finalUrl = baseUrl + '#' + randomId;
 
-            // Tampilkan hasilnya
             document.getElementById('result-url').value = finalUrl;
             document.getElementById('result-box').style.display = 'block';
         }
@@ -144,11 +235,15 @@
         function copyLink() {
             const copyText = document.getElementById("result-url");
             copyText.select(); document.execCommand("copy");
-            document.getElementById("btn-copy").innerText = "Tersalin!";
-            setTimeout(() => { document.getElementById("btn-copy").innerText = "Salin Link"; }, 2000);
+            const btnCopy = document.getElementById("btn-copy");
+            btnCopy.innerText = "Tersalin!";
+            btnCopy.style.backgroundColor = "#10b981"; // Ubah ijo bentar pas dicopy
+            setTimeout(() => { 
+                btnCopy.innerText = "Salin Link"; 
+                btnCopy.style.backgroundColor = "#3b82f6";
+            }, 2000);
         }
 
-        // Jalankan saat pertama kali dibuka
         init();
     </script>
 </body>
