@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #222; 
             margin: 0; 
-            background-color: #f0f2f5; /* Warna abu-abu klasik ala web lawas/bersih */
+            background-color: #f0f2f5; 
             min-height: 100vh;
             line-height: 1.6;
         }
@@ -83,23 +83,17 @@
             border-radius: 4px;
             padding: 30px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            
-            /* Agar spasi dan enter tetap sesuai aslinya */
             white-space: pre-wrap; 
             font-size: 15px;
             color: #111;
         }
 
-        /* 
-           SOLUSI AGAR LINK RAPI, POLOS, DAN TIDAK TERPOTONG 
-        */
         .link-asli {
-            color: #0056b3; /* Biru link klasik */
-            text-decoration: underline; /* Garis bawah klasik */
-            
-            /* Ini kuncinya agar teks panjang seperti mp4 tidak hancur berantakan */
+            color: #0056b3; 
+            text-decoration: underline; 
             word-break: break-word; 
             overflow-wrap: anywhere; 
+            cursor: pointer; /* Tambahan agar terlihat bisa diklik */
         }
         
         .link-asli:hover {
@@ -143,7 +137,7 @@
         </div>
     </div>
 
-    <!-- MODE LIHAT KONTEN (KERTAS PUTIH BERSIH) -->
+    <!-- MODE LIHAT KONTEN -->
     <div id="content-wrapper">
         <div class="content-box" id="view-mode"></div>
     </div>
@@ -177,6 +171,19 @@
             fetchAndLoadContent();
         }
 
+        // FUNGSI BARU: Deteksi jika tab baru diblokir, maka otomatis redirect
+        function openLinkSafe(event, url) {
+            event.preventDefault(); // Mencegah klik default
+            
+            // Coba buka di tab baru
+            const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+            
+            // Jika browser memblokir pop-up (newWindow = null), maka lakukan redirect di halaman yang sama
+            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                window.location.href = url;
+            }
+        }
+
         async function fetchAndLoadContent() {
             try {
                 // HAPUS COMMENT DI BAWAH JIKA SUDAH DISAMBUNG KE SERVER
@@ -191,11 +198,10 @@
                     document.getElementById('content-wrapper').style.display = 'block';
                     
                     /* 
-                       DI SINI URL CUMA DIJADIKAN TAG <A> BIASA TANPA EMBEL-EMBEL.
-                       Link biru polos, garis bawah, bisa diklik, tapi gak bakal terpotong aneh.
+                       DI SINI KITA TAMBAHKAN onclick="openLinkSafe(...)"
                     */
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
-                        return `<a href="${url}" class="link-asli" target="_blank" rel="noopener noreferrer">${url}</a>`;
+                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this.href)">${url}</a>`;
                     });
                 }, 500);
             } catch (e) {
