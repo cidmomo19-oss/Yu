@@ -93,11 +93,19 @@
             text-decoration: underline; 
             word-break: break-word; 
             overflow-wrap: anywhere; 
-            cursor: pointer; /* Tambahan agar terlihat bisa diklik */
+            cursor: pointer; 
         }
         
         .link-asli:hover {
             color: #003d82;
+        }
+
+        /* TAMBAHAN: Warna untuk link yang sudah diklik */
+        .link-asli.link-merah {
+            color: #e53935 !important; /* Warna Merah */
+        }
+        .link-asli.link-merah:hover {
+            color: #b71c1c !important; /* Merah gelap saat di-hover */
         }
 
         .spinner { animation: spin 1s linear infinite; display: none; margin-right: 8px; vertical-align: middle; }
@@ -171,11 +179,16 @@
             fetchAndLoadContent();
         }
 
-        // FUNGSI YANG SUDAH DIPERBAIKI
-        function openLinkSafe(event, url) {
+        // Fungsi Buka Link (dimodifikasi menerima elemen "el")
+        function openLinkSafe(event, el) {
             event.preventDefault(); // Mencegah klik default
             
-            // Buka di tab baru (Jangan pakai parameter noopener/noreferrer di sini agar tidak me-return null)
+            const url = el.href;
+
+            // UBAH WARNA JADI MERAH saat diklik
+            el.classList.add('link-merah');
+            
+            // Buka di tab baru 
             let newWindow = null;
             try {
                 newWindow = window.open(url, '_blank');
@@ -183,12 +196,10 @@
                 console.error("Window open error:", e);
             }
             
-            // Jika browser memblokir pop-up, newWindow akan bernilai null
+            // Jika browser memblokir pop-up
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                // Pop-up keblokir -> Lakukan redirect di tab saat ini
                 window.location.href = url;
             } else {
-                // Pop-up berhasil dibuka -> Set opener jadi null manual untuk alasan keamanan
                 newWindow.opener = null;
             }
         }
@@ -207,7 +218,8 @@
                     document.getElementById('content-wrapper').style.display = 'block';
                     
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
-                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this.href)">${url}</a>`;
+                        // Parameter onclick diganti dari "this.href" menjadi "this" agar kita bisa mengontrol style elemennya
+                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${url}</a>`;
                     });
                 }, 500);
             } catch (e) {
