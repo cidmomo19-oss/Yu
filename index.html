@@ -171,16 +171,25 @@
             fetchAndLoadContent();
         }
 
-        // FUNGSI BARU: Deteksi jika tab baru diblokir, maka otomatis redirect
+        // FUNGSI YANG SUDAH DIPERBAIKI
         function openLinkSafe(event, url) {
             event.preventDefault(); // Mencegah klik default
             
-            // Coba buka di tab baru
-            const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+            // Buka di tab baru (Jangan pakai parameter noopener/noreferrer di sini agar tidak me-return null)
+            let newWindow = null;
+            try {
+                newWindow = window.open(url, '_blank');
+            } catch(e) {
+                console.error("Window open error:", e);
+            }
             
-            // Jika browser memblokir pop-up (newWindow = null), maka lakukan redirect di halaman yang sama
+            // Jika browser memblokir pop-up, newWindow akan bernilai null
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                // Pop-up keblokir -> Lakukan redirect di tab saat ini
                 window.location.href = url;
+            } else {
+                // Pop-up berhasil dibuka -> Set opener jadi null manual untuk alasan keamanan
+                newWindow.opener = null;
             }
         }
 
@@ -197,9 +206,6 @@
                     document.getElementById('verify-wrapper').style.display = 'none';
                     document.getElementById('content-wrapper').style.display = 'block';
                     
-                    /* 
-                       DI SINI KITA TAMBAHKAN onclick="openLinkSafe(...)"
-                    */
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                         return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this.href)">${url}</a>`;
                     });
