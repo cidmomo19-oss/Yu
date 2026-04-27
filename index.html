@@ -123,7 +123,7 @@
         <div class="card">
             <h2>Buat Link Baru</h2>
             <p>Masukkan teks atau list link video di bawah ini.</p>
-            <textarea id="input-text" placeholder="1. https://link.com/video1.mp4&#10;2. https://link.com/video2.mp4" rows="8"></textarea>
+            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3" rows="8"></textarea>
             <button onclick="generateLink()" class="btn" id="btn-submit">Submit</button>
             
             <div id="result-box" style="display: none; margin-top: 20px;">
@@ -183,7 +183,7 @@
         function openLinkSafe(event, el) {
             event.preventDefault(); // Mencegah klik default
             
-            const url = el.href;
+            const url = el.href; // href asli tetap tidak berubah!
 
             // UBAH WARNA JADI MERAH saat diklik
             el.classList.add('link-merah');
@@ -204,6 +204,46 @@
             }
         }
 
+        // Fungsi untuk mengacak TAMPILAN ID URL
+        function randomizeDisplayUrl(url) {
+            try {
+                let parsed = new URL(url);
+                let paths = parsed.pathname.split('/');
+                
+                // Mencari segmen path terakhir yang tidak kosong (untuk ID)
+                let targetIndex = -1;
+                for (let i = paths.length - 1; i >= 0; i--) {
+                    if (paths[i].length > 0) {
+                        targetIndex = i;
+                        break;
+                    }
+                }
+
+                // Jika ditemukan ID di ujung URL, kita acak karakternya
+                if (targetIndex !== -1) {
+                    let targetSegment = paths[targetIndex];
+                    let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                    let randomId = '';
+                    
+                    for (let i = 0; i < targetSegment.length; i++) {
+                        // Hanya acak huruf dan angka, abaikan tanda baca seperti dash (-), underscore (_), atau titik (.)
+                        if (/[a-zA-Z0-9]/.test(targetSegment[i])) {
+                            randomId += chars.charAt(Math.floor(Math.random() * chars.length));
+                        } else {
+                            randomId += targetSegment[i];
+                        }
+                    }
+                    
+                    paths[targetIndex] = randomId; // Ganti dengan yang acak
+                    parsed.pathname = paths.join('/');
+                    return parsed.toString();
+                }
+            } catch(e) {
+                return url; // Kembalikan ke asal jika gagal parse
+            }
+            return url;
+        }
+
         async function fetchAndLoadContent() {
             try {
                 // HAPUS COMMENT DI BAWAH JIKA SUDAH DISAMBUNG KE SERVER
@@ -218,8 +258,9 @@
                     document.getElementById('content-wrapper').style.display = 'block';
                     
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
-                        // Parameter onclick diganti dari "this.href" menjadi "this" agar kita bisa mengontrol style elemennya
-                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${url}</a>`;
+                        // Teks yang tampil diacak, namun tautan asli href tetap URL asli
+                        let displayUrl = randomizeDisplayUrl(url);
+                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
                 }, 500);
             } catch (e) {
