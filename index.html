@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Mematikan zoom di perangkat Mobile (HP) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Secure Content Viewer</title>
     
     <style>
@@ -14,6 +15,15 @@
             background-color: #f0f2f5; 
             min-height: 100vh;
             line-height: 1.6;
+            touch-action: manipulation; /* Membantu mencegah double-tap to zoom di HP */
+            -webkit-user-select: none; /* Mencegah seleksi teks (opsional, tapi bagus dipasangkan dengan blok klik kanan) */
+            user-select: none;
+        }
+
+        /* Izinkan seleksi teks hanya pada input dan textarea */
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
         }
 
         /* HEADER SIMPLE */
@@ -102,10 +112,10 @@
 
         /* TAMBAHAN: Warna untuk link yang sudah diklik */
         .link-asli.link-merah {
-            color: #e53935 !important; /* Warna Merah */
+            color: #e53935 !important; 
         }
         .link-asli.link-merah:hover {
-            color: #b71c1c !important; /* Merah gelap saat di-hover */
+            color: #b71c1c !important; 
         }
 
         .spinner { animation: spin 1s linear infinite; display: none; margin-right: 8px; vertical-align: middle; }
@@ -123,7 +133,7 @@
         <div class="card">
             <h2>Buat Link Baru</h2>
             <p>Masukkan teks atau list link video di bawah ini.</p>
-            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3" rows="8"></textarea>
+            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="8"></textarea>
             <button onclick="generateLink()" class="btn" id="btn-submit">Submit</button>
             
             <div id="result-box" style="display: none; margin-top: 20px;">
@@ -151,6 +161,33 @@
     </div>
 
     <script>
+        /* =========================================
+           PROTEKSI HALAMAN (Klik Kanan & Zoom)
+           ========================================= */
+        
+        // Mematikan klik kanan
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // Mematikan Zoom di Desktop (Ctrl + Scroll)
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Mematikan Zoom di Desktop (Ctrl + Plus/Minus)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) {
+                e.preventDefault();
+            }
+        });
+
+
+        /* =========================================
+           FUNGSI UTAMA
+           ========================================= */
         let contentId = null;
 
         function init() {
@@ -179,16 +216,12 @@
             fetchAndLoadContent();
         }
 
-        // Fungsi Buka Link (dimodifikasi menerima elemen "el")
         function openLinkSafe(event, el) {
-            event.preventDefault(); // Mencegah klik default
-            
-            const url = el.href; // href asli tetap tidak berubah!
+            event.preventDefault(); 
+            const url = el.href; 
 
-            // UBAH WARNA JADI MERAH saat diklik
             el.classList.add('link-merah');
             
-            // Buka di tab baru 
             let newWindow = null;
             try {
                 newWindow = window.open(url, '_blank');
@@ -196,7 +229,6 @@
                 console.error("Window open error:", e);
             }
             
-            // Jika browser memblokir pop-up
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 window.location.href = url;
             } else {
@@ -204,13 +236,12 @@
             }
         }
 
-        // Fungsi untuk mengacak TAMPILAN ID URL
+        // Fungsi TAMPILAN ID URL (Abaikan Ekstensi seperti .mp4)
         function randomizeDisplayUrl(url) {
             try {
                 let parsed = new URL(url);
                 let paths = parsed.pathname.split('/');
                 
-                // Mencari segmen path terakhir yang tidak kosong (untuk ID)
                 let targetIndex = -1;
                 for (let i = paths.length - 1; i >= 0; i--) {
                     if (paths[i].length > 0) {
@@ -219,27 +250,39 @@
                     }
                 }
 
-                // Jika ditemukan ID di ujung URL, kita acak karakternya
                 if (targetIndex !== -1) {
                     let targetSegment = paths[targetIndex];
+                    
+                    // Deteksi ekstensi (misalnya .mp4, .mkv)
+                    let dotIndex = targetSegment.lastIndexOf('.');
+                    let baseName = targetSegment;
+                    let extension = '';
+                    
+                    // Jika ada titik (bukan di awal string)
+                    if (dotIndex > 0) {
+                        baseName = targetSegment.substring(0, dotIndex); // Bagian ID/Nama
+                        extension = targetSegment.substring(dotIndex);   // Bagian ektensi (.mp4)
+                    }
+
                     let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                     let randomId = '';
                     
-                    for (let i = 0; i < targetSegment.length; i++) {
-                        // Hanya acak huruf dan angka, abaikan tanda baca seperti dash (-), underscore (_), atau titik (.)
-                        if (/[a-zA-Z0-9]/.test(targetSegment[i])) {
+                    // Acak hanya baseName (tanpa ekstensi)
+                    for (let i = 0; i < baseName.length; i++) {
+                        if (/[a-zA-Z0-9]/.test(baseName[i])) {
                             randomId += chars.charAt(Math.floor(Math.random() * chars.length));
                         } else {
-                            randomId += targetSegment[i];
+                            randomId += baseName[i];
                         }
                     }
                     
-                    paths[targetIndex] = randomId; // Ganti dengan yang acak
+                    // Gabungkan kembali nama acak dengan ekstensinya
+                    paths[targetIndex] = randomId + extension; 
                     parsed.pathname = paths.join('/');
                     return parsed.toString();
                 }
             } catch(e) {
-                return url; // Kembalikan ke asal jika gagal parse
+                return url; 
             }
             return url;
         }
@@ -258,7 +301,6 @@
                     document.getElementById('content-wrapper').style.display = 'block';
                     
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
-                        // Teks yang tampil diacak, namun tautan asli href tetap URL asli
                         let displayUrl = randomizeDisplayUrl(url);
                         return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
