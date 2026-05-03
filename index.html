@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <!-- Mematikan zoom di perangkat Mobile (HP) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="referrer" content="no-referrer">
+    
     <title>Secure Content Viewer</title>
     
     <style>
@@ -15,12 +18,11 @@
             background-color: #f0f2f5; 
             min-height: 100vh;
             line-height: 1.6;
-            touch-action: manipulation; /* Membantu mencegah double-tap to zoom di HP */
-            -webkit-user-select: none; /* Mencegah seleksi teks (opsional, tapi bagus dipasangkan dengan blok klik kanan) */
+            touch-action: manipulation;
+            -webkit-user-select: none;
             user-select: none;
         }
 
-        /* Izinkan seleksi teks hanya pada input dan textarea */
         input, textarea {
             -webkit-user-select: text;
             user-select: text;
@@ -110,7 +112,6 @@
             color: #003d82;
         }
 
-        /* TAMBAHAN: Warna untuk link yang sudah diklik */
         .link-asli.link-merah {
             color: #e53935 !important; 
         }
@@ -164,26 +165,32 @@
         /* =========================================
            PROTEKSI HALAMAN (Klik Kanan & Zoom)
            ========================================= */
-        
-        // Mematikan klik kanan
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
+        document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) { e.preventDefault(); } });
 
-        // Mematikan Zoom di Desktop (Ctrl + Scroll)
-        document.addEventListener('wheel', function(e) {
-            if (e.ctrlKey) {
-                e.preventDefault();
-            }
-        }, { passive: false });
 
-        // Mematikan Zoom di Desktop (Ctrl + Plus/Minus)
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) {
-                e.preventDefault();
-            }
-        });
+        /* =========================================
+           SISTEM IKLAN BERGANTIAN (ROTASI MEMORI)
+           ========================================= */
+        const adLinks =[
+            "https://conductivebreeds.com/rznx5d1wbr?key=dfe7ca4b20f77f2354da2aba17d12048",
+            "https://omg10.com/4/10390860"
+        ];
 
+        function getNextAdUrl() {
+            // Ambil memori index dari browser (localStorage), mulai dari 0 jika belum ada
+            let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
+            
+            // Dapatkan URL iklan sesuai urutan
+            let adUrl = adLinks[currentIndex];
+            
+            // Siapkan index untuk klik selanjutnya (Ganjil-Genap berulang)
+            let nextIndex = (currentIndex + 1) % adLinks.length;
+            localStorage.setItem('ad_index', nextIndex);
+            
+            return adUrl;
+        }
 
         /* =========================================
            FUNGSI UTAMA
@@ -196,7 +203,8 @@
             
             if (id && id !== 'index.html') {
                 contentId = id;
-                const isVerified = sessionStorage.getItem('verified_' + contentId);
+                // Mengubah dari sessionStorage ke localStorage agar tab baru bisa membaca status verifikasi
+                const isVerified = localStorage.getItem('verified_' + contentId);
                 if (isVerified === 'true') {
                     fetchAndLoadContent();
                 } else {
@@ -207,21 +215,48 @@
             }
         }
 
+        // --- UPDATE: TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
         function triggerVerify() {
             const btn = document.getElementById('btn-robot');
             const spinner = document.getElementById('spinner-icon');
             btn.disabled = true;
             spinner.style.display = 'inline-block';
             document.getElementById('btn-text').innerText = "Loading...";
-            fetchAndLoadContent();
+
+            // Tandai sudah diverifikasi di memori, agar tab baru otomatis bypass verifikasi
+            localStorage.setItem('verified_' + contentId, 'true');
+
+            // Coba buka URL halaman ini sendiri di TAB BARU (otomatis masuk mode konten)
+            let newWindow = null;
+            try {
+                newWindow = window.open(window.location.href, '_blank');
+            } catch(e) {
+                console.error("Window open error:", e);
+            }
+
+            // Pengecekan Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
+            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk melihat konten.");
+                
+                // Reset kembali UI dan status karena gagal
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                document.getElementById('btn-text').innerText = "Saya Manusia";
+                localStorage.removeItem('verified_' + contentId);
+            } else {
+                // Berhasil buka tab baru, arahkan tab UTAMA (saat ini) ke Iklan
+                window.location.href = getNextAdUrl();
+            }
         }
 
+        // --- UPDATE: KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan) ---
         function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
 
             el.classList.add('link-merah');
             
+            // Coba buka Link Video di TAB BARU
             let newWindow = null;
             try {
                 newWindow = window.open(url, '_blank');
@@ -229,19 +264,20 @@
                 console.error("Window open error:", e);
             }
             
+            // Pengecekan Jika Adblock/Popup Blocker Menyala
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                window.location.href = url;
+                alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
-                newWindow.opener = null;
+                newWindow.opener = null; // Security rule
+                // Berhasil buka video di tab baru, arahkan tab UTAMA ke Iklan
+                window.location.href = getNextAdUrl();
             }
         }
 
-        // Fungsi TAMPILAN ID URL (Abaikan Ekstensi seperti .mp4)
         function randomizeDisplayUrl(url) {
             try {
                 let parsed = new URL(url);
                 let paths = parsed.pathname.split('/');
-                
                 let targetIndex = -1;
                 for (let i = paths.length - 1; i >= 0; i--) {
                     if (paths[i].length > 0) {
@@ -249,25 +285,17 @@
                         break;
                     }
                 }
-
                 if (targetIndex !== -1) {
                     let targetSegment = paths[targetIndex];
-                    
-                    // Deteksi ekstensi (misalnya .mp4, .mkv)
                     let dotIndex = targetSegment.lastIndexOf('.');
                     let baseName = targetSegment;
                     let extension = '';
-                    
-                    // Jika ada titik (bukan di awal string)
                     if (dotIndex > 0) {
-                        baseName = targetSegment.substring(0, dotIndex); // Bagian ID/Nama
-                        extension = targetSegment.substring(dotIndex);   // Bagian ektensi (.mp4)
+                        baseName = targetSegment.substring(0, dotIndex);
+                        extension = targetSegment.substring(dotIndex);
                     }
-
                     let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                     let randomId = '';
-                    
-                    // Acak hanya baseName (tanpa ekstensi)
                     for (let i = 0; i < baseName.length; i++) {
                         if (/[a-zA-Z0-9]/.test(baseName[i])) {
                             randomId += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -275,8 +303,6 @@
                             randomId += baseName[i];
                         }
                     }
-                    
-                    // Gabungkan kembali nama acak dengan ekstensinya
                     paths[targetIndex] = randomId + extension; 
                     parsed.pathname = paths.join('/');
                     return parsed.toString();
@@ -294,7 +320,8 @@
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
-                sessionStorage.setItem('verified_' + contentId, 'true');
+                // Ubah ke localStorage agar tab yang dibuka selaras statusnya
+                localStorage.setItem('verified_' + contentId, 'true');
 
                 setTimeout(() => {
                     document.getElementById('verify-wrapper').style.display = 'none';
