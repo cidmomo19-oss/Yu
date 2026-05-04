@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Meta No-Referrer untuk privasi total -->
+    <!-- Meta No-Referrer untuk privasi total dari sisi web tujuan -->
     <meta name="referrer" content="no-referrer">
     <title>Chikuruya - Secure Link</title>
     
     <style>
         /* RESET DASAR & TEMA MODERN CERAH */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #1f2937; /* Abu-abu gelap elegan */
+            color: #1f2937; 
             margin: 0; 
-            background-color: #f8fafc; /* Background cerah modern */
+            background-color: #f8fafc; 
             min-height: 100vh;
             line-height: 1.7;
             touch-action: manipulation;
@@ -44,9 +42,7 @@
             letter-spacing: -0.5px;
         }
 
-        .header span {
-            color: #3b82f6; /* Aksen biru modern */
-        }
+        .header span { color: #3b82f6; }
 
         /* CONTAINER FORM BUAT LINK */
         .form-container {
@@ -59,7 +55,7 @@
 
         .card {
             background: #ffffff;
-            border-radius: 16px; /* Ujung melengkung modern */
+            border-radius: 16px; 
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
             padding: 40px 30px;
             width: 100%;
@@ -67,103 +63,56 @@
             border: 1px solid #f1f5f9;
         }
 
-        .card h2 { 
-            margin: 0 0 8px 0; 
-            font-size: 24px; 
-            color: #111827;
-            font-weight: 700;
-        }
-
-        .card p { 
-            color: #64748b; 
-            font-size: 15px; 
-            margin-bottom: 24px; 
-        }
+        .card h2 { margin: 0 0 8px 0; font-size: 24px; color: #111827; font-weight: 700; }
+        .card p { color: #64748b; font-size: 15px; margin-bottom: 24px; }
 
         /* INPUT MODERN */
         textarea, input[type="text"] { 
-            width: 100%; 
-            padding: 16px; 
-            font-size: 15px; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 12px; 
-            outline: none; 
-            margin-bottom: 20px; 
-            font-family: inherit;
-            background-color: #f8fafc;
-            transition: all 0.3s ease;
+            width: 100%; padding: 16px; font-size: 15px; border: 2px solid #e2e8f0; 
+            border-radius: 12px; outline: none; margin-bottom: 20px; 
+            font-family: inherit; background-color: #f8fafc; transition: all 0.3s ease;
         }
         
         textarea:focus, input[type="text"]:focus { 
-            border-color: #3b82f6; 
-            background-color: #ffffff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
         textarea { resize: vertical; }
 
         /* BUTTON MODERN */
         button.btn { 
-            background: #3b82f6; 
-            color: #ffffff; 
-            border: none; 
-            padding: 16px; 
-            font-size: 16px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            width: 100%; 
-            transition: all 0.2s ease;
+            background: #3b82f6; color: #ffffff; border: none; padding: 16px; 
+            font-size: 16px; border-radius: 12px; cursor: pointer; font-weight: 600; 
+            width: 100%; transition: all 0.2s ease;
         }
         
-        button.btn:hover { 
-            background: #2563eb; 
-            transform: translateY(-1px);
-        }
-        
-        button.btn:active {
-            transform: translateY(1px);
-        }
+        button.btn:hover { background: #2563eb; transform: translateY(-1px); }
+        button.btn:active { transform: translateY(1px); }
 
-        /* =========================================
-           TAMPILAN ISI KONTEN (LANGSUNG BACKGROUND)
-           ========================================= */
+        /* TAMPILAN ISI KONTEN (LANGSUNG BACKGROUND) */
         #content-wrapper {
             max-width: 800px;
             margin: 0 auto;
             padding: 40px 24px;
             display: none;
-            text-align: left; /* Rata Kiri */
-            white-space: pre-wrap; /* Menjaga spasi/enter teks asli */
+            text-align: left; 
+            white-space: pre-wrap; 
             font-size: 16px;
             color: #1f2937;
         }
 
         /* STYLE LINK KONTEN */
         .link-asli {
-            color: #2563eb; 
-            text-decoration: none; 
-            font-weight: 500;
-            word-break: break-word; 
-            overflow-wrap: anywhere; 
-            cursor: pointer; 
-            border-bottom: 1px solid transparent;
-            transition: color 0.3s ease, border-color 0.3s ease;
+            color: #2563eb; text-decoration: none; font-weight: 500;
+            word-break: break-word; overflow-wrap: anywhere; cursor: pointer; 
+            border-bottom: 1px solid transparent; transition: color 0.3s ease, border-color 0.3s ease;
         }
         
-        .link-asli:hover {
-            color: #1d4ed8;
-            border-bottom: 1px solid #1d4ed8;
-        }
+        .link-asli:hover { color: #1d4ed8; border-bottom: 1px solid #1d4ed8; }
 
         /* LINK BEKAS DIKLIK (MERAH) */
-        .link-asli.link-merah {
-            color: #ef4444 !important; /* Merah cerah modern */
-        }
-        .link-asli.link-merah:hover {
-            color: #b91c1c !important; 
-            border-bottom: 1px solid #b91c1c;
-        }
+        .link-asli.link-merah { color: #ef4444 !important; }
+        .link-asli.link-merah:hover { color: #b91c1c !important; border-bottom: 1px solid #b91c1c; }
     </style>
 </head>
 <body>
@@ -187,25 +136,47 @@
         </div>
     </div>
 
-    <!-- MODE LIHAT KONTEN (Tanpa Kotak, Langsung di Background) -->
+    <!-- MODE LIHAT KONTEN -->
     <div id="content-wrapper"></div>
 
     <script>
         /* =========================================
-           PROTEKSI HALAMAN (Klik Kanan & Zoom)
+           PROTEKSI HALAMAN
            ========================================= */
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
         document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
         document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) { e.preventDefault(); } });
 
-
         /* =========================================
-           SISTEM IKLAN BERGANTIAN (ROTASI MEMORI)
+           SISTEM IKLAN & OPTIMASI SPEED (AMAN & LEGAL)
            ========================================= */
         const adLinks =[
             "https://conductivebreeds.com/rznx5d1wbr?key=dfe7ca4b20f77f2354da2aba17d12048",
             "https://omg10.com/4/10390860"
         ];
+
+        // FUNGSI BARU: Memanaskan Jaringan Server Iklan di Balik Layar
+        function preloadAdConnections() {
+            try {
+                // Ambil domain dasar dari list iklan agar tidak duplikat
+                let domains = [...new Set(adLinks.map(url => new URL(url).origin))];
+                
+                domains.forEach(domain => {
+                    // 1. DNS Prefetch (Mencari IP Server Lebih Awal)
+                    let dns = document.createElement('link');
+                    dns.rel = 'dns-prefetch';
+                    dns.href = domain;
+                    document.head.appendChild(dns);
+
+                    // 2. Preconnect (Membuka gerbang TCP/TLS ke server Iklan Lebih Awal)
+                    let preconnect = document.createElement('link');
+                    preconnect.rel = 'preconnect';
+                    preconnect.href = domain;
+                    preconnect.crossOrigin = 'anonymous'; // Keamanan koneksi silang
+                    document.head.appendChild(preconnect);
+                });
+            } catch(e) {}
+        }
 
         function getNextAdUrl() {
             let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
@@ -221,35 +192,31 @@
         let contentId = null;
 
         function init() {
+            // Jalankan pre-koneksi iklan segera setelah web dibuka
+            preloadAdConnections();
+
             const path = window.location.pathname;
             const id = path.split('/').filter(p => p).pop();
             
             if (id && id !== 'index.html') {
                 contentId = id;
-                // Verifikasi dihapus. Langsung muat konten!
                 fetchAndLoadContent();
             } else {
                 document.getElementById('create-wrapper').style.display = 'flex';
             }
         }
 
-        /* =========================================
-           KLIK LINK KONTEN (Simpan Memori Merah)
-           ========================================= */
         function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
             const linkId = el.getAttribute('data-linkid');
 
-            // 1. Langsung rubah jadi merah secara visual
             el.classList.add('link-merah');
             
-            // 2. Simpan identitas link di memori lokal (supaya di-refresh tetap merah)
             if (linkId) {
                 localStorage.setItem(linkId, 'true');
             }
             
-            // 3. Buka video di Tab Baru (otomatis menggunakan noopener noreferrer dari tag HTML)
             let newWindow = null;
             try {
                 newWindow = window.open(url, '_blank');
@@ -257,13 +224,14 @@
                 console.error("Window open error:", e);
             }
             
-            // 4. Pengecekan AdBlock
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
                 newWindow.opener = null;
-                // 5. Tab Lama Pindah ke Iklan
-                window.location.href = getNextAdUrl();
+                // Menggunakan sedikit delay UI Threading agar browser memprioritaskan pemindahan tab baru sebelum reload tab lama
+                setTimeout(() => {
+                    window.location.href = getNextAdUrl();
+                }, 10);
             }
         }
 
@@ -300,15 +268,12 @@
                     parsed.pathname = paths.join('/');
                     return parsed.toString();
                 }
-            } catch(e) {
-                return url; 
-            }
+            } catch(e) { return url; }
             return url;
         }
 
         async function fetchAndLoadContent() {
             try {
-                // HAPUS COMMENT DI BAWAH JIKA SUDAH DISAMBUNG KE SERVER API ANDA
                 const res = await fetch('/api/get/' + contentId);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
@@ -317,18 +282,12 @@
                 
                 document.getElementById('content-wrapper').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                     let displayUrl = randomizeDisplayUrl(url);
-                    
-                    // Buat ID memori unik
                     let linkId = 'clicked_' + encodeURIComponent(url);
-                    
-                    // Cek saat pertama dirender: Jika di memori lokal ada, jadikan merah
                     let isClicked = localStorage.getItem(linkId) === 'true' ? 'link-merah' : '';
 
-                    // No-referrer & No-opener sudah disisipkan langsung di atribut rel
                     return `<a href="${url}" class="link-asli ${isClicked}" data-linkid="${linkId}" rel="noopener noreferrer" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                 });
             } catch (e) {
-                // Tampilan error yang menyatu dengan background
                 document.getElementById('content-wrapper').style.display = 'block';
                 document.getElementById('content-wrapper').innerHTML = '<span style="color:#ef4444; font-weight:bold;">Data tidak ditemukan atau sudah kedaluwarsa.</span>';
             }
@@ -364,9 +323,7 @@
             setTimeout(() => btn.innerText = "Salin URL", 2000);
         }
 
-        /* =========================================
-           PENDETEKSI KETIKA USER KLIK TOMBOL "BACK"
-           ========================================= */
+        /* PENDETEKSI KETIKA USER KLIK TOMBOL "BACK" DARI IKLAN */
         window.addEventListener('pageshow', function(event) {
             const links = document.querySelectorAll('.link-asli');
             links.forEach(el => {
