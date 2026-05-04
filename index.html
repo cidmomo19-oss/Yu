@@ -4,230 +4,137 @@
     <meta charset="UTF-8">
     <!-- Mematikan zoom di perangkat Mobile (HP) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- SISTEM NO-REFERRER GLOBAL -->
-    <meta name="referrer" content="no-referrer">
-    
     <title>Secure Content Viewer</title>
     
     <style>
-        /* RESET DASAR & TEMA MINIMALIS */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
-
+        /* RESET DASAR */
         body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #0f172a; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #222; 
             margin: 0; 
-            /* Background bersih tanpa kotak */
-            background: #ffffff; 
+            background-color: #f0f2f5; 
             min-height: 100vh;
-            line-height: 1.7;
+            line-height: 1.6;
             touch-action: manipulation;
-            
-            /* MEMPERKUAT ANTI COPY & SELEKSI */
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
-            -webkit-touch-callout: none;
         }
 
-        /* Izinkan seleksi hanya pada input form */
         input, textarea {
             -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
             user-select: text;
         }
 
-        /* HEADER CLEAN BATA KIRI */
+        /* HEADER SIMPLE */
         .header {
-            padding: 50px 8% 20px 8%;
-            font-size: 28px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -1px;
+            background: #fff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
         }
 
-        /* WRAPPER KONTEN (Rata Kiri, Tanpa Flex Center) */
-        .form-container, #content-wrapper {
-            display: block;
-            padding: 0 8% 60px 8%;
-            max-width: 800px;
-            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* MENGHILANGKAN KOTAK KARTU */
-        .card, .content-box {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0;
-            width: 100%;
-        }
-
-        h2 { 
-            margin: 0 0 12px 0; 
-            font-size: 32px; 
-            font-weight: 800;
-            color: #0f172a; 
-            letter-spacing: -1px;
-        }
-        
-        p { 
-            color: #475569; 
-            font-size: 16px; 
-            margin-bottom: 30px; 
-            line-height: 1.6;
-            max-width: 600px;
-        }
-
-        /* INPUT & TEXTAREA MINIMALIS */
-        textarea, input { 
-            width: 100%; 
-            padding: 18px 20px; 
-            font-size: 15px; 
-            background: #f8fafc; /* Abu-abu sangat pucat */
-            border: 1px solid #e2e8f0; 
-            border-radius: 12px; 
-            outline: none; 
-            margin-bottom: 20px; 
-            font-family: inherit;
-            box-sizing: border-box;
-            color: #1e293b;
-            transition: all 0.3s ease;
-        }
-        
-        textarea::placeholder, input::placeholder {
-            color: #94a3b8;
-        }
-
-        textarea:focus, input:focus { 
-            background: #ffffff;
-            border-color: #3b82f6; 
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
-        }
-
-        textarea { resize: vertical; min-height: 160px; }
-
-        /* BUTTON ELEGANT BATA KIRI */
-        button.btn { 
-            background: #0f172a; /* Hitam elegan */
-            color: #ffffff; 
-            border: none; 
-            padding: 16px 32px; 
-            font-size: 16px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            display: inline-flex;
-            align-items: center;
+        /* CONTAINER FORM (Tengah Layar) */
+        .form-container {
+            display: flex;
             justify-content: center;
-            transition: all 0.2s ease;
-            max-width: max-content;
-        }
-        
-        button.btn:hover { 
-            background: #3b82f6; /* Berubah biru saat di-hover */
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
         }
 
-        button.btn:active {
-            transform: translateY(0);
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #ddd;
         }
 
-        button.btn:disabled {
-            background: #cbd5e1;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: none;
+        h2 { margin: 0 0 10px 0; font-size: 22px; color: #111; }
+        p { color: #555; font-size: 14px; margin-bottom: 20px; }
+
+        /* INPUT */
+        textarea, input { 
+            width: 100%; padding: 12px; font-size: 14px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; outline: none; 
+            margin-bottom: 15px; font-family: inherit;
+            box-sizing: border-box;
+        }
+        textarea { resize: vertical; }
+        textarea:focus, input:focus { border-color: #0066cc; }
+
+        /* BUTTON */
+        button.btn { 
+            background: #0066cc; color: #fff; border: none; 
+            padding: 12px; font-size: 15px; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; width: 100%; 
+        }
+        button.btn:hover { background: #0052a3; }
+
+        /* =========================================
+           TAMPILAN ISI KONTEN (PASTELINK STYLE)
+           ========================================= */
+        #content-wrapper {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 15px;
+            display: none;
         }
 
-        #result-box {
-            padding-top: 30px;
-            margin-top: 20px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        /* CUSTOM LINK STYLE (Tanpa Referrer) */
         .content-box {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             white-space: pre-wrap; 
-            font-size: 17px;
-            color: #1e293b;
-            line-height: 1.9;
+            font-size: 15px;
+            color: #111;
         }
 
         .link-asli {
-            color: #2563eb; 
-            text-decoration: none; 
-            font-weight: 500;
-            border-bottom: 2px solid rgba(37, 99, 235, 0.2);
-            padding-bottom: 1px;
+            color: #0056b3; 
+            text-decoration: underline; 
             word-break: break-word; 
             overflow-wrap: anywhere; 
             cursor: pointer; 
-            transition: all 0.2s ease;
         }
         
         .link-asli:hover {
-            color: #1d4ed8;
-            border-bottom-color: #1d4ed8;
-            background: rgba(37, 99, 235, 0.05);
+            color: #003d82;
         }
 
         .link-asli.link-merah {
-            color: #ef4444 !important; 
-            border-bottom-color: #fca5a5 !important;
+            color: #e53935 !important; 
         }
         .link-asli.link-merah:hover {
-            color: #dc2626 !important; 
-            border-bottom-color: #dc2626 !important;
-            background: rgba(239, 68, 68, 0.05);
+            color: #b71c1c !important; 
         }
 
-        /* ANIMASI SPINNER & MUNCUL */
-        .spinner { 
-            animation: spin 1s linear infinite; 
-            display: none; 
-            margin-right: 12px; 
-            vertical-align: middle; 
-        }
-        
-        @keyframes spin { 
-            from { transform: rotate(0deg); } 
-            to { transform: rotate(360deg); } 
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-15px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* RESPONSIVE UNTUK HP */
-        @media (max-width: 600px) {
-            .header { padding: 40px 6% 10px 6%; }
-            .form-container, #content-wrapper { padding: 10px 6% 40px 6%; }
-            h2 { font-size: 26px; }
-            button.btn { width: 100%; max-width: none; } /* Di HP tombol jadi full biar mudah diklik */
-        }
+        .spinner { animation: spin 1s linear infinite; display: none; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="header">
-        Chikuruya.
+        Chikuruya
     </div>
 
     <!-- MODE BUAT KONTEN -->
     <div class="form-container" id="create-wrapper" style="display: none;">
         <div class="card">
             <h2>Buat Link Baru</h2>
-            <p>Masukkan teks atau list link video di bawah ini. Tautan akan dienkripsi dan diamankan.</p>
+            <p>Masukkan teks atau list link video di bawah ini.</p>
             <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="8"></textarea>
-            <button onclick="generateLink()" class="btn" id="btn-submit">Submit Tautan</button>
+            <button onclick="generateLink()" class="btn" id="btn-submit">Submit</button>
             
-            <div id="result-box" style="display: none;">
-                <p style="margin-bottom: 12px; font-weight: 500; color: #0f172a;">Link berhasil dibuat:</p>
+            <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
                 <button id="btn-copy" class="btn" onclick="copyLink()">Salin URL</button>
             </div>
@@ -236,12 +143,12 @@
 
     <!-- MODE VERIFIKASI -->
     <div class="form-container" id="verify-wrapper" style="display: none;">
-        <div class="card">
-            <h2>Verifikasi Keamanan</h2>
-            <p>Sistem kami mendeteksi tautan terlindungi. Klik tombol di bawah untuk membuktikan bahwa Anda bukan robot pemindai otomatis.</p>
-            <button class="btn" id="btn-robot" onclick="triggerVerify()">
-                <svg class="spinner" id="spinner-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                <span id="btn-text">Saya Manusia, Lanjutkan</span>
+        <div class="card" style="text-align: center;">
+            <h2>Verifikasi</h2>
+            <p>Klik tombol di bawah untuk melihat isi konten.</p>
+            <button class="btn" id="btn-robot" onclick="triggerVerify()" style="width: auto; padding: 12px 30px;">
+                <svg class="spinner" id="spinner-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span id="btn-text">Saya Manusia</span>
             </button>
         </div>
     </div>
@@ -253,17 +160,11 @@
 
     <script>
         /* =========================================
-           PROTEKSI HALAMAN (Klik Kanan, Blokir Copy & Zoom)
+           PROTEKSI HALAMAN (Klik Kanan & Zoom)
            ========================================= */
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-        document.addEventListener('dragstart', function(e) { e.preventDefault(); }); // Anti seret gambar/teks
         document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
-        document.addEventListener('keydown', function(e) { 
-            // Matikan CTRL+S, CTRL+U, CTRL+P, dll
-            if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0' || e.key === 'u' || e.key === 's' || e.key === 'p' || e.key === 'c')) { 
-                e.preventDefault(); 
-            } 
-        });
+        document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) { e.preventDefault(); } });
 
 
         /* =========================================
@@ -275,10 +176,16 @@
         ];
 
         function getNextAdUrl() {
+            // Ambil memori index dari browser (localStorage), mulai dari 0 jika belum ada
             let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
+            
+            // Dapatkan URL iklan sesuai urutan
             let adUrl = adLinks[currentIndex];
+            
+            // Siapkan index untuk klik selanjutnya (Ganjil-Genap berulang)
             let nextIndex = (currentIndex + 1) % adLinks.length;
             localStorage.setItem('ad_index', nextIndex);
+            
             return adUrl;
         }
 
@@ -293,63 +200,73 @@
             
             if (id && id !== 'index.html') {
                 contentId = id;
+                // Mengubah dari sessionStorage ke localStorage agar tab baru bisa membaca status verifikasi
                 const isVerified = localStorage.getItem('verified_' + contentId);
                 if (isVerified === 'true') {
                     fetchAndLoadContent();
                 } else {
-                    document.getElementById('verify-wrapper').style.display = 'block';
+                    document.getElementById('verify-wrapper').style.display = 'flex';
                 }
             } else {
-                document.getElementById('create-wrapper').style.display = 'block';
+                document.getElementById('create-wrapper').style.display = 'flex';
             }
         }
 
+        // --- UPDATE: TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
         function triggerVerify() {
             const btn = document.getElementById('btn-robot');
             const spinner = document.getElementById('spinner-icon');
             btn.disabled = true;
             spinner.style.display = 'inline-block';
-            document.getElementById('btn-text').innerText = "Memproses...";
+            document.getElementById('btn-text').innerText = "Loading...";
 
+            // Tandai sudah diverifikasi di memori, agar tab baru otomatis bypass verifikasi
             localStorage.setItem('verified_' + contentId, 'true');
 
+            // Coba buka URL halaman ini sendiri di TAB BARU (otomatis masuk mode konten)
             let newWindow = null;
             try {
-                // Rel noopener ditambahkan saat klik via js
-                newWindow = window.open(window.location.href, '_blank', 'noopener,noreferrer');
+                newWindow = window.open(window.location.href, '_blank');
             } catch(e) {
                 console.error("Window open error:", e);
             }
 
+            // Pengecekan Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk melihat konten.");
+                
+                // Reset kembali UI dan status karena gagal
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                document.getElementById('btn-text').innerText = "Saya Manusia, Lanjutkan";
+                document.getElementById('btn-text').innerText = "Saya Manusia";
                 localStorage.removeItem('verified_' + contentId);
             } else {
+                // Berhasil buka tab baru, arahkan tab UTAMA (saat ini) ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
 
+        // --- UPDATE: KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan) ---
         function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
 
             el.classList.add('link-merah');
             
+            // Coba buka Link Video di TAB BARU
             let newWindow = null;
             try {
-                // Pastikan terbuka aman dengan noopener noreferrer
-                newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                newWindow = window.open(url, '_blank');
             } catch(e) {
                 console.error("Window open error:", e);
             }
             
+            // Pengecekan Jika Adblock/Popup Blocker Menyala
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
-                newWindow.opener = null; 
+                newWindow.opener = null; // Security rule
+                // Berhasil buka video di tab baru, arahkan tab UTAMA ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
@@ -395,23 +312,23 @@
 
         async function fetchAndLoadContent() {
             try {
-                // Ganti endpoint jika perlu
+                // HAPUS COMMENT DI BAWAH JIKA SUDAH DISAMBUNG KE SERVER
                 const res = await fetch('/api/get/' + contentId);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
+                // Ubah ke localStorage agar tab yang dibuka selaras statusnya
                 localStorage.setItem('verified_' + contentId, 'true');
 
                 setTimeout(() => {
                     document.getElementById('verify-wrapper').style.display = 'none';
                     document.getElementById('content-wrapper').style.display = 'block';
                     
-                    // MENAMBAHKAN ATRIBUT rel="noopener noreferrer" PADA A HREF GENERATOR
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                         let displayUrl = randomizeDisplayUrl(url);
-                        return `<a href="${url}" class="link-asli" rel="noopener noreferrer" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
+                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
-                }, 400);
+                }, 500);
             } catch (e) {
                 alert("Data tidak ditemukan atau sudah kedaluwarsa.");
             }
@@ -435,7 +352,7 @@
                 document.getElementById('result-box').style.display = 'block';
             } catch (e) { alert("Gagal membuat link."); }
             btn.disabled = false;
-            btn.innerText = "Submit Tautan";
+            btn.innerText = "Submit";
         }
 
         function copyLink() {
@@ -443,13 +360,8 @@
             copyText.select();
             document.execCommand("copy");
             const btn = document.getElementById("btn-copy");
-            const originalText = btn.innerText;
-            btn.innerText = "Berhasil Disalin!";
-            btn.style.background = "#10b981"; // Hijau sukses
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.background = ""; // Reset
-            }, 2000);
+            btn.innerText = "Tersalin!";
+            setTimeout(() => btn.innerText = "Salin URL", 2000);
         }
 
         init();
