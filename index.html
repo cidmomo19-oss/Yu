@@ -4,18 +4,21 @@
     <meta charset="UTF-8">
     <!-- Mematikan zoom di perangkat Mobile (HP) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+    <!-- FITUR NO REFERER: Memastikan tidak ada data asal usul yang dikirim -->
     <meta name="referrer" content="no-referrer">
     
     <title>Secure Content Viewer</title>
     
+    <!-- Font Modern & Bersih (Google Fonts) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* RESET DASAR */
+        /* RESET DASAR & TEMA MODERN */
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #222; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1E293B; /* Warna teks abu gelap (clean) */
             margin: 0; 
-            background-color: #f0f2f5; 
+            background-color: #F8FAFC; /* Latar belakang cerah & bersih */
             min-height: 100vh;
             line-height: 1.6;
             touch-action: manipulation;
@@ -28,98 +31,152 @@
             user-select: text;
         }
 
-        /* HEADER SIMPLE */
+        /* HEADER MODERN */
         .header {
-            background: #fff;
-            padding: 15px 20px;
-            border-bottom: 1px solid #ddd;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
+            background: #FFFFFF;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0F172A;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Bayangan sangat lembut */
+            border-bottom: 1px solid #F1F5F9;
         }
 
-        /* CONTAINER FORM (Tengah Layar) */
+        /* CONTAINER FORM */
         .form-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
-            padding: 20px;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            padding: 30px;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid #ddd;
-        }
-
-        h2 { margin: 0 0 10px 0; font-size: 22px; color: #111; }
-        p { color: #555; font-size: 14px; margin-bottom: 20px; }
-
-        /* INPUT */
-        textarea, input { 
-            width: 100%; padding: 12px; font-size: 14px; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; outline: none; 
-            margin-bottom: 15px; font-family: inherit;
+            min-height: calc(100vh - 65px);
+            padding: 24px;
             box-sizing: border-box;
         }
-        textarea { resize: vertical; }
-        textarea:focus, input:focus { border-color: #0066cc; }
 
-        /* BUTTON */
-        button.btn { 
-            background: #0066cc; color: #fff; border: none; 
-            padding: 12px; font-size: 15px; border-radius: 6px; 
-            cursor: pointer; font-weight: bold; width: 100%; 
+        /* KARTU (CARD) MODERN */
+        .card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #F1F5F9;
+            text-align: center;
         }
-        button.btn:hover { background: #0052a3; }
+
+        h2 { 
+            margin: 0 0 8px 0; 
+            font-size: 24px; 
+            font-weight: 700;
+            color: #0F172A; 
+        }
+        
+        p { 
+            color: #64748B; 
+            font-size: 15px; 
+            margin-bottom: 24px; 
+        }
+
+        /* INPUT & TEXTAREA CLEAN */
+        textarea, input { 
+            width: 100%; 
+            padding: 14px 16px; 
+            font-size: 15px; 
+            color: #334155;
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0; 
+            border-radius: 12px; 
+            outline: none; 
+            margin-bottom: 16px; 
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        textarea:focus, input:focus { 
+            background-color: #FFFFFF;
+            border-color: #3B82F6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Efek glow fokus */
+        }
+
+        /* TOMBOL MODERN (CERAH & ELEGAN) */
+        button.btn { 
+            background: #4F46E5; /* Indigo Modern */
+            color: #FFFFFF; 
+            border: none; 
+            padding: 14px 20px; 
+            font-size: 16px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            width: 100%; 
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        button.btn:hover { 
+            background: #4338CA; 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        button.btn:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
         /* =========================================
-           TAMPILAN ISI KONTEN (PASTELINK STYLE)
+           TAMPILAN ISI KONTEN (CLEAN STYLE)
            ========================================= */
         #content-wrapper {
-            max-width: 800px;
+            max-width: 760px;
             margin: 40px auto;
-            padding: 0 15px;
+            padding: 0 20px;
             display: none;
         }
 
         .content-box {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02);
             white-space: pre-wrap; 
-            font-size: 15px;
-            color: #111;
+            font-size: 16px;
+            color: #334155;
+            line-height: 1.8;
         }
 
+        /* LINK KONTEN */
         .link-asli {
-            color: #0056b3; 
-            text-decoration: underline; 
+            color: #2563EB; 
+            text-decoration: none; 
+            font-weight: 500;
             word-break: break-word; 
             overflow-wrap: anywhere; 
             cursor: pointer; 
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
         
         .link-asli:hover {
-            color: #003d82;
+            text-decoration: underline;
+            background-color: #EFF6FF;
         }
 
+        /* Warna untuk link yang sudah diklik */
         .link-asli.link-merah {
-            color: #e53935 !important; 
+            color: #EF4444 !important; 
         }
         .link-asli.link-merah:hover {
-            color: #b71c1c !important; 
+            background-color: #FEF2F2 !important;
         }
 
-        .spinner { animation: spin 1s linear infinite; display: none; margin-right: 8px; vertical-align: middle; }
+        /* ANIMASI LOADING */
+        .spinner { animation: spin 1s linear infinite; display: none; margin-right: 10px; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -131,26 +188,27 @@
 
     <!-- MODE BUAT KONTEN -->
     <div class="form-container" id="create-wrapper" style="display: none;">
-        <div class="card">
+        <div class="card" style="text-align: left;">
             <h2>Buat Link Baru</h2>
-            <p>Masukkan teks atau list link video di bawah ini.</p>
-            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="8"></textarea>
+            <p>Masukkan teks atau daftar link video di bawah ini.</p>
+            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="7"></textarea>
             <button onclick="generateLink()" class="btn" id="btn-submit">Submit</button>
             
-            <div id="result-box" style="display: none; margin-top: 20px;">
+            <div id="result-box" style="display: none; margin-top: 24px; text-align: left;">
+                <p style="margin-bottom: 8px; font-weight: 600; color: #1E293B;">Link Anda:</p>
                 <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" class="btn" onclick="copyLink()">Salin URL</button>
+                <button id="btn-copy" class="btn" onclick="copyLink()" style="background: #10B981;">Salin URL</button>
             </div>
         </div>
     </div>
 
     <!-- MODE VERIFIKASI -->
     <div class="form-container" id="verify-wrapper" style="display: none;">
-        <div class="card" style="text-align: center;">
-            <h2>Verifikasi</h2>
-            <p>Klik tombol di bawah untuk melihat isi konten.</p>
-            <button class="btn" id="btn-robot" onclick="triggerVerify()" style="width: auto; padding: 12px 30px;">
-                <svg class="spinner" id="spinner-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <div class="card">
+            <h2>Keamanan Konten</h2>
+            <p>Klik tombol di bawah untuk membuktikan Anda bukan robot dan melihat isi konten.</p>
+            <button class="btn" id="btn-robot" onclick="triggerVerify()" style="width: auto; padding: 14px 36px; margin: 0 auto;">
+                <svg class="spinner" id="spinner-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 <span id="btn-text">Saya Manusia</span>
             </button>
         </div>
@@ -169,7 +227,6 @@
         document.addEventListener('wheel', function(e) { if (e.ctrlKey) { e.preventDefault(); } }, { passive: false });
         document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === '=' || e.key === '-' || e.key === '0')) { e.preventDefault(); } });
 
-
         /* =========================================
            SISTEM IKLAN BERGANTIAN (ROTASI MEMORI)
            ========================================= */
@@ -179,16 +236,10 @@
         ];
 
         function getNextAdUrl() {
-            // Ambil memori index dari browser (localStorage), mulai dari 0 jika belum ada
             let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
-            
-            // Dapatkan URL iklan sesuai urutan
             let adUrl = adLinks[currentIndex];
-            
-            // Siapkan index untuk klik selanjutnya (Ganjil-Genap berulang)
             let nextIndex = (currentIndex + 1) % adLinks.length;
             localStorage.setItem('ad_index', nextIndex);
-            
             return adUrl;
         }
 
@@ -203,8 +254,9 @@
             
             if (id && id !== 'index.html') {
                 contentId = id;
-                // Mengubah dari sessionStorage ke localStorage agar tab baru bisa membaca status verifikasi
-                const isVerified = localStorage.getItem('verified_' + contentId);
+                // Menggunakan sessionStorage agar ketika browser ditutup (sesi berakhir),
+                // halaman ini kembali meminta verifikasi (tidak ter-bypass selamanya).
+                const isVerified = sessionStorage.getItem('verified_' + contentId);
                 if (isVerified === 'true') {
                     fetchAndLoadContent();
                 } else {
@@ -215,7 +267,7 @@
             }
         }
 
-        // --- UPDATE: TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
+        // --- TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
         function triggerVerify() {
             const btn = document.getElementById('btn-robot');
             const spinner = document.getElementById('spinner-icon');
@@ -223,52 +275,50 @@
             spinner.style.display = 'inline-block';
             document.getElementById('btn-text').innerText = "Loading...";
 
-            // Tandai sudah diverifikasi di memori, agar tab baru otomatis bypass verifikasi
-            localStorage.setItem('verified_' + contentId, 'true');
+            // Tandai sudah diverifikasi di session, agar tab baru otomatis bypass verifikasi
+            sessionStorage.setItem('verified_' + contentId, 'true');
 
-            // Coba buka URL halaman ini sendiri di TAB BARU (otomatis masuk mode konten)
+            // Coba buka URL halaman ini di TAB BARU dengan fitur No Referrer
             let newWindow = null;
             try {
-                newWindow = window.open(window.location.href, '_blank');
+                newWindow = window.open(window.location.href, '_blank', 'noopener,noreferrer');
             } catch(e) {
                 console.error("Window open error:", e);
             }
 
-            // Pengecekan Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
+            // Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk melihat konten.");
                 
-                // Reset kembali UI dan status karena gagal
+                // Reset karena gagal
                 btn.disabled = false;
                 spinner.style.display = 'none';
                 document.getElementById('btn-text').innerText = "Saya Manusia";
-                localStorage.removeItem('verified_' + contentId);
+                sessionStorage.removeItem('verified_' + contentId);
             } else {
                 // Berhasil buka tab baru, arahkan tab UTAMA (saat ini) ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
 
-        // --- UPDATE: KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan) ---
+        // --- KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan) ---
         function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
 
             el.classList.add('link-merah');
             
-            // Coba buka Link Video di TAB BARU
+            // Coba buka Link Video di TAB BARU dengan fitur No Referrer
             let newWindow = null;
             try {
-                newWindow = window.open(url, '_blank');
+                newWindow = window.open(url, '_blank', 'noopener,noreferrer');
             } catch(e) {
                 console.error("Window open error:", e);
             }
             
-            // Pengecekan Jika Adblock/Popup Blocker Menyala
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
-                newWindow.opener = null; // Security rule
                 // Berhasil buka video di tab baru, arahkan tab UTAMA ke Iklan
                 window.location.href = getNextAdUrl();
             }
@@ -320,16 +370,16 @@
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
-                // Ubah ke localStorage agar tab yang dibuka selaras statusnya
-                localStorage.setItem('verified_' + contentId, 'true');
+                sessionStorage.setItem('verified_' + contentId, 'true');
 
                 setTimeout(() => {
                     document.getElementById('verify-wrapper').style.display = 'none';
                     document.getElementById('content-wrapper').style.display = 'block';
                     
+                    // Tambahkan rel="noopener noreferrer" ke struktur a href
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                         let displayUrl = randomizeDisplayUrl(url);
-                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
+                        return `<a href="${url}" class="link-asli" rel="noopener noreferrer" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
                 }, 500);
             } catch (e) {
@@ -364,7 +414,11 @@
             document.execCommand("copy");
             const btn = document.getElementById("btn-copy");
             btn.innerText = "Tersalin!";
-            setTimeout(() => btn.innerText = "Salin URL", 2000);
+            btn.style.background = "#059669"; // Hijau yang lebih gelap
+            setTimeout(() => {
+                btn.innerText = "Salin URL";
+                btn.style.background = "#10B981";
+            }, 2000);
         }
 
         init();
