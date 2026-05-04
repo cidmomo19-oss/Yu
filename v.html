@@ -176,16 +176,10 @@
         ];
 
         function getNextAdUrl() {
-            // Ambil memori index dari browser (localStorage), mulai dari 0 jika belum ada
             let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
-            
-            // Dapatkan URL iklan sesuai urutan
             let adUrl = adLinks[currentIndex];
-            
-            // Siapkan index untuk klik selanjutnya (Ganjil-Genap berulang)
             let nextIndex = (currentIndex + 1) % adLinks.length;
             localStorage.setItem('ad_index', nextIndex);
-            
             return adUrl;
         }
 
@@ -200,7 +194,6 @@
             
             if (id && id !== 'index.html') {
                 contentId = id;
-                // Mengubah dari sessionStorage ke localStorage agar tab baru bisa membaca status verifikasi
                 const isVerified = localStorage.getItem('verified_' + contentId);
                 if (isVerified === 'true') {
                     fetchAndLoadContent();
@@ -212,7 +205,6 @@
             }
         }
 
-        // --- UPDATE: TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
         function triggerVerify() {
             const btn = document.getElementById('btn-robot');
             const spinner = document.getElementById('spinner-icon');
@@ -220,10 +212,8 @@
             spinner.style.display = 'inline-block';
             document.getElementById('btn-text').innerText = "Loading...";
 
-            // Tandai sudah diverifikasi di memori, agar tab baru otomatis bypass verifikasi
             localStorage.setItem('verified_' + contentId, 'true');
 
-            // Coba buka URL halaman ini sendiri di TAB BARU (otomatis masuk mode konten)
             let newWindow = null;
             try {
                 newWindow = window.open(window.location.href, '_blank');
@@ -231,35 +221,32 @@
                 console.error("Window open error:", e);
             }
 
-            // Pengecekan Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk melihat konten.");
-                
-                // Reset kembali UI dan status karena gagal
                 btn.disabled = false;
                 spinner.style.display = 'none';
                 document.getElementById('btn-text').innerText = "Saya Manusia";
                 localStorage.removeItem('verified_' + contentId);
             } else {
-                // Berhasil buka tab baru, arahkan tab UTAMA (saat ini) ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
 
-        // --- UPDATE: KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan & Simpan Memori Merah) ---
-        function openLinkSafe(event, el, linkId) {
+        // --- UPDATE: KLIK LINK KONTEN (Simpan Memori Merah) ---
+        function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
+            const linkId = el.getAttribute('data-linkid');
 
-            // 1. Jadikan link warna merah
+            // 1. Langsung rubah jadi merah
             el.classList.add('link-merah');
             
-            // 2. Simpan di memori sementara browser agar tetap merah jika di-refresh
+            // 2. Simpan identitas link di memori lokal berdasarkan URL uniknya
             if (linkId) {
                 localStorage.setItem(linkId, 'true');
             }
             
-            // Coba buka Link Video di TAB BARU
+            // 3. Buka video di Tab Baru
             let newWindow = null;
             try {
                 newWindow = window.open(url, '_blank');
@@ -267,12 +254,12 @@
                 console.error("Window open error:", e);
             }
             
-            // Pengecekan Jika Adblock/Popup Blocker Menyala
+            // Pengecekan AdBlock
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
-                newWindow.opener = null; // Security rule
-                // Berhasil buka video di tab baru, arahkan tab UTAMA ke Iklan
+                newWindow.opener = null;
+                // 4. Tab Lama Pindah ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
@@ -323,27 +310,23 @@
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
-                // Ubah ke localStorage agar tab yang dibuka selaras statusnya
                 localStorage.setItem('verified_' + contentId, 'true');
 
                 setTimeout(() => {
                     document.getElementById('verify-wrapper').style.display = 'none';
                     document.getElementById('content-wrapper').style.display = 'block';
                     
-                    let linkIndex = 0; // Tambahan: Counter hitungan urutan link
-
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                         let displayUrl = randomizeDisplayUrl(url);
                         
-                        // Membuat ID unik per link menggunakan urutan content dan index
-                        let linkId = 'clicked_' + contentId + '_' + linkIndex;
-                        linkIndex++;
+                        // Buat ID memori menggunakan URL aslinya agar akurat
+                        let linkId = 'clicked_' + encodeURIComponent(url);
                         
-                        // Cek apakah di memori browser URL ini sudah pernah di klik
+                        // Cek saat render: Apakah di memori lokal link ini tercatat pernah diklik?
                         let isClicked = localStorage.getItem(linkId) === 'true' ? 'link-merah' : '';
 
-                        // Kirim linkId ke dalam fungsi klik dan masukan isClicked kedalam class
-                        return `<a href="${url}" class="link-asli ${isClicked}" onclick="openLinkSafe(event, this, '${linkId}')">${displayUrl}</a>`;
+                        // Sisipkan data-linkid ke dalam element agar mudah dibaca nanti
+                        return `<a href="${url}" class="link-asli ${isClicked}" data-linkid="${linkId}" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
                 }, 500);
             } catch (e) {
@@ -380,6 +363,21 @@
             btn.innerText = "Tersalin!";
             setTimeout(() => btn.innerText = "Salin URL", 2000);
         }
+
+        /* =========================================
+           UPDATE: PENDETEKSI SAAT USER KLIK TOMBOL "BACK"
+           ========================================= */
+        window.addEventListener('pageshow', function(event) {
+            // Ketika user kembali (Back) dari halaman Iklan ke halaman ini,
+            // Periksa ulang semua link dan merah-kan jika memang ada di memori.
+            const links = document.querySelectorAll('.link-asli');
+            links.forEach(el => {
+                const linkId = el.getAttribute('data-linkid');
+                if (linkId && localStorage.getItem(linkId) === 'true') {
+                    el.classList.add('link-merah');
+                }
+            });
+        });
 
         init();
     </script>
