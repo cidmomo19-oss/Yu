@@ -2,26 +2,17 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <!-- Mematikan zoom di perangkat Mobile (HP) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <!-- KEAMANAN: Mematikan Referrer Global -->
-    <meta name="referrer" content="no-referrer">
-    
     <title>Secure Content Viewer</title>
-
-    <!-- Font Modern: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* RESET & BASE */
+        /* RESET DASAR */
         body { 
-            font-family: 'Inter', sans-serif;
-            color: #334155; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #222; 
             margin: 0; 
-            /* Background gradien bersih & cerah */
-            background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+            background-color: #f0f2f5; 
             min-height: 100vh;
             line-height: 1.6;
             touch-action: manipulation;
@@ -34,159 +25,98 @@
             user-select: text;
         }
 
-        /* HEADER MODERN (Glassmorphism) */
+        /* HEADER SIMPLE */
         .header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 16px 24px;
-            font-size: 22px;
-            font-weight: 700;
-            color: #0f172a;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            background: #fff;
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
         }
 
-        /* CONTAINER */
+        /* CONTAINER FORM (Tengah Layar) */
         .form-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: calc(100vh - 70px);
+            min-height: 80vh;
             padding: 20px;
-            box-sizing: border-box;
         }
 
-        /* KARTU (Modern Card) */
         .card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 10px rgba(0, 0, 0, 0.02);
-            padding: 40px 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 30px;
             width: 100%;
             max-width: 500px;
-            border: 1px solid rgba(255,255,255,0.8);
-            transition: transform 0.3s ease;
+            border: 1px solid #ddd;
         }
 
-        h2 { 
-            margin: 0 0 8px 0; 
-            font-size: 24px; 
-            color: #0f172a; 
-            font-weight: 700;
-        }
-        
-        p { 
-            color: #64748b; 
-            font-size: 15px; 
-            margin-bottom: 24px; 
-        }
+        h2 { margin: 0 0 10px 0; font-size: 22px; color: #111; }
+        p { color: #555; font-size: 14px; margin-bottom: 20px; }
 
-        /* INPUT & TEXTAREA MODERN */
+        /* INPUT */
         textarea, input { 
-            width: 100%; 
-            padding: 14px 16px; 
-            font-size: 15px; 
-            background: #f8fafc;
-            border: 1px solid #cbd5e1; 
-            border-radius: 10px; 
-            outline: none; 
-            margin-bottom: 20px; 
-            font-family: inherit;
+            width: 100%; padding: 12px; font-size: 14px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; outline: none; 
+            margin-bottom: 15px; font-family: inherit;
             box-sizing: border-box;
-            transition: all 0.3s ease;
-            color: #1e293b;
         }
-        
-        textarea { resize: vertical; min-height: 120px; }
-        
-        textarea:focus, input:focus { 
-            background: #ffffff;
-            border-color: #3b82f6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-        }
+        textarea { resize: vertical; }
+        textarea:focus, input:focus { border-color: #0066cc; }
 
-        /* TOMBOL (Gradient & Animasi) */
+        /* BUTTON */
         button.btn { 
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: #ffffff; 
-            border: none; 
-            padding: 14px; 
-            font-size: 16px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: 600; 
-            width: 100%; 
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: #0066cc; color: #fff; border: none; 
+            padding: 12px; font-size: 15px; border-radius: 6px; 
+            cursor: pointer; font-weight: bold; width: 100%; 
         }
-        
-        button.btn:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        }
-        
-        button.btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
-        }
+        button.btn:hover { background: #0052a3; }
 
-        /* KONTEN (PASTELINK STYLE MODERN) */
+        /* =========================================
+           TAMPILAN ISI KONTEN (PASTELINK STYLE)
+           ========================================= */
         #content-wrapper {
             max-width: 800px;
             margin: 40px auto;
-            padding: 0 20px;
+            padding: 0 15px;
             display: none;
         }
 
         .content-box {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             white-space: pre-wrap; 
-            font-size: 16px;
-            color: #334155;
-            line-height: 1.8;
-            border: 1px solid #f1f5f9;
+            font-size: 15px;
+            color: #111;
         }
 
         .link-asli {
-            color: #2563eb; 
-            text-decoration: none;
-            font-weight: 500;
+            color: #0056b3; 
+            text-decoration: underline; 
             word-break: break-word; 
             overflow-wrap: anywhere; 
             cursor: pointer; 
-            padding: 2px 4px;
-            border-radius: 4px;
-            transition: background 0.2s ease, color 0.2s ease;
         }
         
         .link-asli:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
-            text-decoration: underline;
+            color: #003d82;
         }
 
         .link-asli.link-merah {
-            color: #ef4444 !important; 
+            color: #e53935 !important; 
         }
         .link-asli.link-merah:hover {
-            background: #fef2f2;
-            color: #b91c1c !important; 
+            color: #b71c1c !important; 
         }
 
-        /* SPINNER */
-        .spinner { animation: spin 1s linear infinite; display: none; margin-right: 10px; }
+        .spinner { animation: spin 1s linear infinite; display: none; margin-right: 8px; vertical-align: middle; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -201,23 +131,23 @@
         <div class="card">
             <h2>Buat Link Baru</h2>
             <p>Masukkan teks atau list link video di bawah ini.</p>
-            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="6"></textarea>
+            <textarea id="input-text" placeholder="1. https://l.pokoco.co/3k_eN1Fi5&#10;2. https://gofile.io/d/A1B2C3&#10;3. https://link.com/video.mp4" rows="8"></textarea>
             <button onclick="generateLink()" class="btn" id="btn-submit">Submit</button>
             
-            <div id="result-box" style="display: none; margin-top: 24px;">
+            <div id="result-box" style="display: none; margin-top: 20px;">
                 <input type="text" id="result-url" readonly onclick="this.select()">
-                <button id="btn-copy" class="btn" onclick="copyLink()" style="background: #0f172a; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);">Salin URL</button>
+                <button id="btn-copy" class="btn" onclick="copyLink()">Salin URL</button>
             </div>
         </div>
     </div>
 
     <!-- MODE VERIFIKASI -->
     <div class="form-container" id="verify-wrapper" style="display: none;">
-        <div class="card" style="text-align: center; padding: 50px 30px;">
-            <h2>Verifikasi Keamanan</h2>
-            <p>Klik tombol di bawah untuk membuktikan Anda manusia.</p>
-            <button class="btn" id="btn-robot" onclick="triggerVerify()" style="width: auto; padding: 14px 40px; margin: 0 auto;">
-                <svg class="spinner" id="spinner-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <div class="card" style="text-align: center;">
+            <h2>Verifikasi</h2>
+            <p>Klik tombol di bawah untuk melihat isi konten.</p>
+            <button class="btn" id="btn-robot" onclick="triggerVerify()" style="width: auto; padding: 12px 30px;">
+                <svg class="spinner" id="spinner-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 <span id="btn-text">Saya Manusia</span>
             </button>
         </div>
@@ -246,10 +176,16 @@
         ];
 
         function getNextAdUrl() {
+            // Ambil memori index dari browser (localStorage), mulai dari 0 jika belum ada
             let currentIndex = parseInt(localStorage.getItem('ad_index')) || 0;
+            
+            // Dapatkan URL iklan sesuai urutan
             let adUrl = adLinks[currentIndex];
+            
+            // Siapkan index untuk klik selanjutnya (Ganjil-Genap berulang)
             let nextIndex = (currentIndex + 1) % adLinks.length;
             localStorage.setItem('ad_index', nextIndex);
+            
             return adUrl;
         }
 
@@ -264,6 +200,7 @@
             
             if (id && id !== 'index.html') {
                 contentId = id;
+                // Mengubah dari sessionStorage ke localStorage agar tab baru bisa membaca status verifikasi
                 const isVerified = localStorage.getItem('verified_' + contentId);
                 if (isVerified === 'true') {
                     fetchAndLoadContent();
@@ -275,7 +212,7 @@
             }
         }
 
-        // --- TOMBOL VERIFIKASI (Tab-Under + Adblock Detect) ---
+        // --- UPDATE: TOMBOL VERIFIKASI (Buka Konten di Tab Baru, Tab Lama jadi Iklan) ---
         function triggerVerify() {
             const btn = document.getElementById('btn-robot');
             const spinner = document.getElementById('spinner-icon');
@@ -283,52 +220,57 @@
             spinner.style.display = 'inline-block';
             document.getElementById('btn-text').innerText = "Loading...";
 
+            // Tandai sudah diverifikasi di memori, agar tab baru otomatis bypass verifikasi
             localStorage.setItem('verified_' + contentId, 'true');
 
+            // Coba buka URL halaman ini sendiri di TAB BARU (otomatis masuk mode konten)
             let newWindow = null;
             try {
-                // Gunakan noopener untuk security & batasi referrer
-                newWindow = window.open(window.location.href, '_blank', 'noopener,noreferrer');
+                newWindow = window.open(window.location.href, '_blank');
             } catch(e) {
                 console.error("Window open error:", e);
             }
 
+            // Pengecekan Jika Adblock/Popup Blocker Mencegah Tab Baru Terbuka
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk melihat konten.");
                 
+                // Reset kembali UI dan status karena gagal
                 btn.disabled = false;
                 spinner.style.display = 'none';
                 document.getElementById('btn-text').innerText = "Saya Manusia";
                 localStorage.removeItem('verified_' + contentId);
             } else {
+                // Berhasil buka tab baru, arahkan tab UTAMA (saat ini) ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
 
-        // --- KLIK LINK KONTEN (Tab-Under + Adblock Detect) ---
+        // --- UPDATE: KLIK LINK KONTEN (Buka Video di Tab Baru, Tab Lama jadi Iklan) ---
         function openLinkSafe(event, el) {
             event.preventDefault(); 
             const url = el.href; 
 
             el.classList.add('link-merah');
             
+            // Coba buka Link Video di TAB BARU
             let newWindow = null;
             try {
-                // Ditambahkan noopener,noreferrer
-                newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                newWindow = window.open(url, '_blank');
             } catch(e) {
                 console.error("Window open error:", e);
             }
             
+            // Pengecekan Jika Adblock/Popup Blocker Menyala
             if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
                 alert("Popup diblokir! Silakan izinkan popup atau matikan AdBlock Anda untuk membuka link ini.");
             } else {
-                newWindow.opener = null; 
+                newWindow.opener = null; // Security rule
+                // Berhasil buka video di tab baru, arahkan tab UTAMA ke Iklan
                 window.location.href = getNextAdUrl();
             }
         }
 
-        // FUNGSI DISPLAY RANDOM NAMA FILE URL
         function randomizeDisplayUrl(url) {
             try {
                 let parsed = new URL(url);
@@ -375,6 +317,7 @@
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
+                // Ubah ke localStorage agar tab yang dibuka selaras statusnya
                 localStorage.setItem('verified_' + contentId, 'true');
 
                 setTimeout(() => {
@@ -383,8 +326,7 @@
                     
                     document.getElementById('view-mode').innerHTML = data.content.replace(/(https?:\/\/[^\s]+)/g, url => {
                         let displayUrl = randomizeDisplayUrl(url);
-                        // Ditambahkan rel="noopener noreferrer" pada tag <a>
-                        return `<a href="${url}" class="link-asli" rel="noopener noreferrer" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
+                        return `<a href="${url}" class="link-asli" onclick="openLinkSafe(event, this)">${displayUrl}</a>`;
                     });
                 }, 500);
             } catch (e) {
@@ -419,9 +361,7 @@
             document.execCommand("copy");
             const btn = document.getElementById("btn-copy");
             btn.innerText = "Tersalin!";
-            setTimeout(() => {
-                btn.innerText = "Salin URL";
-            }, 2000);
+            setTimeout(() => btn.innerText = "Salin URL", 2000);
         }
 
         init();
